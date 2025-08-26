@@ -230,7 +230,7 @@ void PlayState::HandleEvent(SDL_Event* e)
 
 
 // In future I think it should call Update for the necessary systems
-void PlayState::Update()
+void PlayState::Update(float deltaTime)
 {
     auto collisionSystem = gCoordinator.GetSystem<CollisionSystem>();
     // To make jump go higher when space is held

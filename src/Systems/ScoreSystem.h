@@ -10,7 +10,7 @@ class ScoreSystem : public System
 {
 public:
     void Init();
-    void Update();
+    void Update(float deltaTime);
 
     int score;
     int level;

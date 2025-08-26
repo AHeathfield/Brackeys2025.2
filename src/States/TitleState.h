@@ -8,6 +8,8 @@
 #include "../Components/Buttons/ButtonComponent.h"
 #include "../Components/Buttons/StateChangerButton.h"
 #include "../Systems/RenderSystem.h"
+#include "../Systems/AnimationSystem.h"
+#include "../Systems/AudioSystem.h"
 
 class TitleState : public State
 {
@@ -15,7 +17,7 @@ public:
     void Enter() override;
     void Exit() override;
     void HandleEvent(SDL_Event* e) override;
-    void Update() override;
+    void Update(float deltaTime) override;
     // int GetStateNumber() override;
 
 private:
@@ -29,5 +31,6 @@ private:
     // Entities
     Entity mBackground = MAX_ENTITIES + 1; // NULL
     Entity mPlayButton;
+    std::vector<std::shared_ptr<System>> mSystemUpdateOrder;
     // int mStateNumber = -1; // Default value
 };

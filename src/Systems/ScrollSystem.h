@@ -22,7 +22,7 @@ class ScrollSystem : public System
 
 public:
     void Init();
-    void Update(float deltaTime);
+    void Update(float deltaTime) override;
     float GetScrollSpeed();
     void SetScrollSpeed(float speed);
     void DecreaseScrollSpeed(float speed);

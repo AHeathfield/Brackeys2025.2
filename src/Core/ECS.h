@@ -363,6 +363,8 @@ private:
 class System
 {
 public:
+    virtual ~System() = default; // So I can create collections of Systems 
+    virtual void Update(float deltaTime) = 0; // I think every system should have an update method that does something with the entities
     std::set<Entity> mEntities;
 };
 

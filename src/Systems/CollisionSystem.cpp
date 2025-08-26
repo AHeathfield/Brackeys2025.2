@@ -7,6 +7,12 @@
 
 extern Coordinator gCoordinator;
 
+void CollisionSystem::Update(float deltaTime)
+{
+    UpdateCollisions();
+    UpdateTransforms();
+}
+
 void CollisionSystem::UpdateCollisions()
 {
     std::set<Entity> playerEntities;

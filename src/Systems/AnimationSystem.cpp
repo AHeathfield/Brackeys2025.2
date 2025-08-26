@@ -3,7 +3,7 @@
 
 extern Coordinator gCoordinator;
 
-void AnimationSystem::Update()
+void AnimationSystem::Update(float deltaTime)
 {
     for (const auto& entity : mEntities)
     {

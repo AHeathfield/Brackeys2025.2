@@ -77,7 +77,7 @@ void PlayerMovementSystem::HandleEvent(SDL_Event e)
 }
 
 
-void PlayerMovementSystem::Update()
+void PlayerMovementSystem::Update(float deltaTime)
 {
     // To make jump go higher when space is held
     if (mIsSpaceHeldDown && mSpaceInputCount > 0 && mSpaceInputCount < 10)

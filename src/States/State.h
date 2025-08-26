@@ -15,7 +15,7 @@ public:
     virtual void Enter() = 0;
     virtual void Exit() = 0;
     virtual void HandleEvent(SDL_Event* e) = 0;
-    virtual void Update() = 0;
+    virtual void Update(float deltaTime) = 0;
     // virtual int GetStateNumber() = 0;
 
     // static int stateNumber;

@@ -14,6 +14,7 @@ class CollisionSystem : public System
     static constexpr int kMaxIFrames = 60;
 
 public:
+    void Update(float deltaTime) override;
     void UpdateCollisions();
     void UpdateTransforms();
 

@@ -47,7 +47,7 @@ public:
     bool LoadMedia(TextureComponent* textureComponent);
 
     // Things that happen every frame
-    void Update();
+    void Update(float deltaTime) override;
 
     // Renders texture
     void Render(TransformComponent transfromComponent, TextureComponent textureComponent, double degrees = 0.0, SDL_FPoint* center = nullptr, SDL_FlipMode flipMode = SDL_FLIP_NONE );

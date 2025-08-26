@@ -74,7 +74,7 @@ bool RenderSystem::Init()
 }
 
 
-void RenderSystem::Update()
+void RenderSystem::Update(float deltaTime)
 {
     // Updating window size if it changed
     int windowW, windowH;

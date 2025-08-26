@@ -13,7 +13,7 @@ class AudioSystem : public System
 public:
     void Init();
     void LoadAudio(Audio& audio);
-    void Update();
+    void Update(float deltaTime) override;
     void Close();
 
 private:

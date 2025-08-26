@@ -40,7 +40,6 @@ set(SRCS
     game.cpp
     src/Core/Utility.cpp
     src/Systems/RenderSystem.cpp
-    src/Systems/MouseButtonSystem.cpp
     src/Systems/PhysicsSystem.cpp
     src/Systems/CollisionSystem.cpp
     src/Systems/PlayerMovementSystem.cpp

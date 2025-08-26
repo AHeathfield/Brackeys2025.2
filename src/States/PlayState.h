@@ -19,7 +19,7 @@ public:
     void Enter() override;
     void Exit() override;
     void HandleEvent(SDL_Event* e) override;
-    void Update() override;
+    void Update(float deltaTime) override;
 
 private:
     void UpdatePlayer();

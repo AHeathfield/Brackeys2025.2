@@ -103,7 +103,7 @@ std::string getNumberString(int digits, int gameNumber)
 
 }
 
-void ScoreSystem::Update()
+void ScoreSystem::Update(float deltaTime)
 {
     int digitsScore = getNumberOfDigits(score);
     int digitsLevel = getNumberOfDigits(level);

@@ -18,7 +18,7 @@ class PlayerMovementSystem : public System
     static constexpr float kDecreaseSpeedAmount = 75.f;
 
 public:
-    void Update();
+    void Update(float deltaTime) override;
     void HandleEvent(SDL_Event e);
 
 private:

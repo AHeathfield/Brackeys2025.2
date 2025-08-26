@@ -10,7 +10,7 @@
 class AnimationSystem : public System
 {
 public:
-    void Update();
+    void Update(float deltaTime) override;
 
 private:
     void UpdateAnimation(Animation& animation, TextureComponent& textureComponent);

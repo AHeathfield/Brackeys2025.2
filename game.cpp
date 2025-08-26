@@ -340,7 +340,7 @@ int main( int argc, char* args[] )
                 //     playerMovementSystem->HandleEvent(e);
                 // }
             }
-            gCurrentState->Update();
+            gCurrentState->Update(deltaTime);
 
             // If current state is PlayState
             if (typeid(*gCurrentState) == typeid(PlayState))
@@ -349,14 +349,18 @@ int main( int argc, char* args[] )
                 // playerMovementSystem->Update();
                 scrollSystem->Update(deltaTime);
                 physicsSystem->Update(deltaTime);
-                collisionSystem->UpdateCollisions();
-                collisionSystem->UpdateTransforms();
+                collisionSystem->Update(deltaTime);
+                animationSystem->Update(deltaTime);
+                renderSystem->Update(deltaTime);
+                audioSystem->Update(deltaTime);
+                // collisionSystem->UpdateCollisions();
+                // collisionSystem->UpdateTransforms();
             }
 
             // scoreSystem->Update();
-            animationSystem->Update();
-            renderSystem->Update();
-            audioSystem->Update();
+            // animationSystem->Update(deltaTime);
+            // renderSystem->Update(deltaTime);
+            // audioSystem->Update(deltaTime);
 
             // If time remaining in frame
             constexpr Uint64 nsPerFrame = 1000000000 / kScreenFps; 

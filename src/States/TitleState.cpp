@@ -148,13 +148,21 @@ void TitleState::HandleEvent(SDL_Event* e)
             disableEffectColor(&texture);
         }
     }
+
+    // Setting the Systems Update Order
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AnimationSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<RenderSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AudioSystem>());
 }
 
 
 // I think put like the systems here in future
-void TitleState::Update()
+void TitleState::Update(float deltaTime)
 {
-
+    for (int i = 0; i < mSystemUpdateOrder.size(); i++)
+    {
+        mSystemUpdateOrder[i]->Update(deltaTime);
+    }
 }
 
 

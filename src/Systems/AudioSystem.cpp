@@ -98,7 +98,7 @@ void AudioSystem::LoadAudio(Audio& audio)
 
 
 // TODO: Maybe add something to pause the music??
-void AudioSystem::Update()
+void AudioSystem::Update(float deltaTime)
 {
     std::set<std::string> currentEntityAudios;
     int freeChannel = 0;
