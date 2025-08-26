@@ -135,10 +135,21 @@ void PlayState::Enter()
             AnimationComponent{
                 .animations = sunAnimations
             });
+
+    // Setting up update order
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<ScrollSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<PhysicsSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<CollisionSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AnimationSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<RenderSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AudioSystem>());
 }
 
 void PlayState::Exit()
 {
+    // Clear the update order
+    mSystemUpdateOrder.clear();
+
     // Close the Scroll System
     auto mScrollSystem = gCoordinator.GetSystem<ScrollSystem>();
     auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
@@ -266,5 +277,12 @@ void PlayState::Update(float deltaTime)
         float scrollSpeed = scrollSystem->GetScrollSpeed();
         // It halfs it plus a lil more
         scrollSystem->DecreaseScrollSpeed((scrollSpeed / 2) + kDecreaseSpeedAmount);
+    }
+
+
+    // Updating systems
+    for (int i = 0; i < mSystemUpdateOrder.size(); i++)
+    {
+        mSystemUpdateOrder[i]->Update(deltaTime);
     }
 }

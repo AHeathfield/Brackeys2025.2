@@ -343,19 +343,19 @@ int main( int argc, char* args[] )
             gCurrentState->Update(deltaTime);
 
             // If current state is PlayState
-            if (typeid(*gCurrentState) == typeid(PlayState))
-            {
-                // SDL_Log("IN PLAYSTATE");
-                // playerMovementSystem->Update();
-                scrollSystem->Update(deltaTime);
-                physicsSystem->Update(deltaTime);
-                collisionSystem->Update(deltaTime);
-                animationSystem->Update(deltaTime);
-                renderSystem->Update(deltaTime);
-                audioSystem->Update(deltaTime);
-                // collisionSystem->UpdateCollisions();
-                // collisionSystem->UpdateTransforms();
-            }
+            // if (typeid(*gCurrentState) == typeid(PlayState))
+            // {
+            //     // SDL_Log("IN PLAYSTATE");
+            //     // playerMovementSystem->Update();
+            //     scrollSystem->Update(deltaTime);
+            //     physicsSystem->Update(deltaTime);
+            //     collisionSystem->Update(deltaTime);
+            //     animationSystem->Update(deltaTime);
+            //     renderSystem->Update(deltaTime);
+            //     audioSystem->Update(deltaTime);
+            //     // collisionSystem->UpdateCollisions();
+            //     // collisionSystem->UpdateTransforms();
+            // }
 
             // scoreSystem->Update();
             // animationSystem->Update(deltaTime);

@@ -11,6 +11,9 @@
 #include "../Systems/ScrollSystem.h"
 #include "../Systems/RenderSystem.h"
 #include "../Systems/CollisionSystem.h"
+#include "../Systems/PhysicsSystem.h"
+#include "../Systems/AnimationSystem.h"
+#include "../Systems/AudioSystem.h"
 
 
 class PlayState : public State
@@ -30,6 +33,7 @@ private:
     Entity mGroundCollider;
     Entity mBackground;
     Entity mSun;
+    std::vector<std::shared_ptr<System>> mSystemUpdateOrder;
 
     // std::shared_ptr<CollisionSystem> mCollisionSystem; //= gCoordinator.GetSystem<CollisionSystem>();
     // std::shared_ptr<ScrollSystem> mScrollSystem; //gCoordinator.GetSystem<ScrollSystem>();

@@ -93,10 +93,18 @@ void TitleState::Enter()
             button
             );
     button = nullptr;
+
+    // Setting the Systems Update Order
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AnimationSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<RenderSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AudioSystem>());
 }
 
 void TitleState::Exit()
 {
+    // Clear the update order
+    mSystemUpdateOrder.clear();
+
     auto& animationComponent = gCoordinator.GetComponent<AnimationComponent>(mBackground);
     animationComponent.Play("Open Curtains");
     // SDL_Log("Leaving TitleState")
@@ -149,10 +157,7 @@ void TitleState::HandleEvent(SDL_Event* e)
         }
     }
 
-    // Setting the Systems Update Order
-    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AnimationSystem>());
-    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<RenderSystem>());
-    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AudioSystem>());
+
 }
 
 
