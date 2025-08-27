@@ -11,8 +11,8 @@ void PlayState::Enter()
     const float screenWidth = 1920.f;
 
     // Initializing the ScrollSystem
-    auto mScrollSystem = gCoordinator.GetSystem<ScrollSystem>();
-    mScrollSystem->Init();
+    // auto mScrollSystem = gCoordinator.GetSystem<ScrollSystem>();
+    // mScrollSystem->Init();
 
     // The player
     mPlayer = gCoordinator.CreateEntity();
@@ -80,64 +80,49 @@ void PlayState::Enter()
             });
 
 
-    mGroundCollider = gCoordinator.CreateEntity();
+    mGround = gCoordinator.CreateEntity();
     gCoordinator.AddComponent(
-            mGroundCollider,
+            mGround,
             TransformComponent{
-                .position = Vector2((screenWidth / 2) - 135.f, screenHeight - 270.f),
-            });
-    // FOR TESTING
-    // gCoordinator.AddComponent(
-    //         mGroundCollider,
-    //         TextureComponent{
-    //             .texture = nullptr,
-    //             .spriteClip = SDL_FRect{0.f, 0.f, 270.f, 270.f},
-    //             .path = "src/Assets/debug.png",
-    //         });
-    gCoordinator.AddComponent(
-            mGroundCollider,
-            BoxColliderComponent{
-                .position = Vector2((screenWidth / 2) - 135.f, screenHeight - 270.f),
-                .w = 270,
-                .h = 1000 // For good measure :)
-            });
-
-    // The player
-    mSun = gCoordinator.CreateEntity();
-    std::unordered_map<std::string, Animation> sunAnimations;
-    Animation smile = {
-        .numberOfImages = 360,
-        .columnsPerRow = 18,
-        .clipWidth = 240.f,
-        .clipHeight = 240.f,
-        .animationTime = 30.f,
-        .startClipPos = Vector2(),
-        .isPlaying = true,
-        .isLooping = true
-    };
-    sunAnimations.insert({"Smile", smile});
-
-    gCoordinator.AddComponent(
-            mSun,
-            TransformComponent{
-                .position = Vector2((screenWidth / 2) - (270 / 2),  334.f),
+                .position = Vector2(0.f, screenHeight - 270.f),
             });
     gCoordinator.AddComponent(
-            mSun,
+            mGround,
             TextureComponent{
                 .texture = nullptr,
-                .spriteClip = SDL_FRect{0.f, 0.f, 240.f, 240.f},
-                .path = "src/Assets/SunSmileSpriteSheet_240x240_12FPS.png",
-                .depth = 9
+                .path = "src/Assets/Starting.png",
             });
     gCoordinator.AddComponent(
-            mSun,
-            AnimationComponent{
-                .animations = sunAnimations
+            mGround,
+            BoxColliderComponent{
+                .position = Vector2(0.f, screenHeight - 270.f),
+                .w = 7680,
+                .h = 270
+            });
+
+    // Adding some test objs for level
+    mTestObject = gCoordinator.CreateEntity();
+    gCoordinator.AddComponent(
+            mTestObject,
+            TransformComponent{
+                .position = Vector2(800.f, screenHeight - (270.f + 120.f)),
+            });
+    gCoordinator.AddComponent(
+            mTestObject,
+            TextureComponent{
+                .texture = nullptr,
+                .spriteClip = SDL_FRect{0.f, 0.f, 120.f, 120.f},
+                .path = "src/Assets/SandStoneSpriteSheet.png",
+            });
+    gCoordinator.AddComponent(
+            mTestObject,
+            BoxColliderComponent{
+                .position = Vector2(800.f, screenHeight - (270.f + 120.f)),
+                .w = 120,
+                .h = 120
             });
 
     // Setting up update order
-    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<ScrollSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<PhysicsSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<CollisionSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AnimationSystem>());
@@ -150,41 +135,37 @@ void PlayState::Exit()
     // Clear the update order
     mSystemUpdateOrder.clear();
 
-    // Close the Scroll System
-    auto mScrollSystem = gCoordinator.GetSystem<ScrollSystem>();
-    auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-    mScrollSystem->Close();
-
     // Destroy the Texture components
-    auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(mPlayer);
-    textureComponent.destroy();
+    gCoordinator.GetComponent<TextureComponent>(mPlayer).destroy();
+    gCoordinator.GetComponent<TextureComponent>(mBackground).destroy();
+    gCoordinator.GetComponent<TextureComponent>(mGround).destroy();
+    gCoordinator.GetComponent<TextureComponent>(mTestObject).destroy();
 
-    // textureComponent = gCoordinator.GetComponent<TextureComponent>(mBackground);
-    // textureComponent.destroy();
-
+    // Destroying entities
     gCoordinator.DestroyEntity(mPlayer);
-    gCoordinator.DestroyEntity(mGroundCollider);
-    // gCoordinator.DestroyEntity(mBackground);
+    gCoordinator.DestroyEntity(mGround);
+    gCoordinator.DestroyEntity(mBackground);
+    gCoordinator.DestroyEntity(mTestObject);
 }
 
 
 void PlayState::HandleEvent(SDL_Event* e)
 {
+    // Resetting x movement
+    auto& kinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
+
+
     if (e->type == SDL_EVENT_KEY_DOWN)
     {
+        // Movements
+        // JUMP
         if (e->key.key == SDLK_SPACE)
         {
-            // std::string log = "Count: " + std::to_string(mSpaceInputCount);
-            // SDL_Log(log.c_str());
-
             // Initial Jump
             // Should be and is on Ground
             if (mSpaceInputCount == 0)
             {
                 // NOTE: positive y is downwards
-                auto& kinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
-
-                SDL_Log("Initial Jump");
                 kinematics.velocity.y = -1250.f;
                 kinematics.acceleration.y = PhysicsSystem::kGravity;
 
@@ -201,22 +182,24 @@ void PlayState::HandleEvent(SDL_Event* e)
         }
 
         // FAST FALL
-        if (!mIsDownHeldDown && e->key.key == SDLK_DOWN)
-        {
-            mIsDownHeldDown = true;
-            auto& kinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
-            kinematics.velocity.y = 2000.f;
-        }
+        // if (!mIsDownHeldDown && e->key.key == SDLK_DOWN)
+        // {
+        //     mIsDownHeldDown = true;
+        //     auto& kinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
+        //     kinematics.velocity.y = 2000.f;
+        // }
 
-        auto scrollSystem = gCoordinator.GetSystem<ScrollSystem>();
-        // For debugging
-        if (e->key.key == SDLK_LEFT)
+        // LEFT
+        if (e->key.key == SDLK_A)
         {
-            scrollSystem->SetScrollSpeed(200.f);
+            kinematics.velocity.x = -1 * kPlayerMoveSpeed;
+            mIsAHeldDown = true;
         }
-        if (e->key.key == SDLK_RIGHT)
+        // RIGHT
+        if (e->key.key == SDLK_D)
         {
-            scrollSystem->SetScrollSpeed(2500.f);
+            kinematics.velocity.x = kPlayerMoveSpeed;
+            mIsDHeldDown = true;
         }
 
     }
@@ -228,19 +211,33 @@ void PlayState::HandleEvent(SDL_Event* e)
         {
             mIsSpaceHeldDown = false;
         }
-        if (e->key.key == SDLK_DOWN)
+        if (e->key.key == SDLK_A)
         {
-            mIsDownHeldDown = false;
+            mIsAHeldDown = false;
+        }
+        if (e->key.key == SDLK_D)
+        {
+            mIsDHeldDown = false;
         }
     }
 
 
-    // Updating Player
-    // UpdatePlayer();
+    // Handling side to side movement cases
+    if (!mIsAHeldDown && !mIsDHeldDown)
+    {
+        kinematics.velocity.x = 0.f;
+    }
+    else if (!mIsAHeldDown && mIsDHeldDown)
+    {
+        kinematics.velocity.x = kPlayerMoveSpeed;
+    }
+    else if (mIsAHeldDown && !mIsDHeldDown)
+    {
+        kinematics.velocity.x = -1 * kPlayerMoveSpeed;
+    }
 }
 
 
-// In future I think it should call Update for the necessary systems
 void PlayState::Update(float deltaTime)
 {
     auto collisionSystem = gCoordinator.GetSystem<CollisionSystem>();
@@ -270,14 +267,14 @@ void PlayState::Update(float deltaTime)
     }
 
     // If player hit a wall
-    if (collisionSystem->didPlayerHitWall() == true)
-    {
-        SDL_Log("Slowing player down");
-        auto scrollSystem = gCoordinator.GetSystem<ScrollSystem>();
-        float scrollSpeed = scrollSystem->GetScrollSpeed();
-        // It halfs it plus a lil more
-        scrollSystem->DecreaseScrollSpeed((scrollSpeed / 2) + kDecreaseSpeedAmount);
-    }
+    // if (collisionSystem->didPlayerHitWall() == true)
+    // {
+    //     SDL_Log("Slowing player down");
+    //     auto scrollSystem = gCoordinator.GetSystem<ScrollSystem>();
+    //     float scrollSpeed = scrollSystem->GetScrollSpeed();
+    //     // It halfs it plus a lil more
+    //     scrollSystem->DecreaseScrollSpeed((scrollSpeed / 2) + kDecreaseSpeedAmount);
+    // }
 
 
     // Updating systems

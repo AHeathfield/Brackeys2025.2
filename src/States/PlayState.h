@@ -18,6 +18,7 @@
 
 class PlayState : public State
 {
+    static constexpr float kPlayerMoveSpeed = 200.f;
 public:
     void Enter() override;
     void Exit() override;
@@ -28,11 +29,10 @@ private:
     void UpdatePlayer();
 
 private:
-    static constexpr float kDecreaseSpeedAmount = 75.f;
     Entity mPlayer;
-    Entity mGroundCollider;
+    Entity mGround;
     Entity mBackground;
-    Entity mSun;
+    Entity mTestObject;
     std::vector<std::shared_ptr<System>> mSystemUpdateOrder;
 
     // std::shared_ptr<CollisionSystem> mCollisionSystem; //= gCoordinator.GetSystem<CollisionSystem>();
@@ -40,6 +40,8 @@ private:
 
     bool mIsSpaceHeldDown = false;
     bool mIsDownHeldDown = false;
+    bool mIsAHeldDown = false;
+    bool mIsDHeldDown = false;
     int mSpaceInputCount = 0;
 
 };
