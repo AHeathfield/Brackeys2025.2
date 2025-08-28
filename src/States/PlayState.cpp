@@ -1,6 +1,7 @@
 #include "PlayState.h"
 #include "State.h"
 #include <SDL3/SDL_rect.h>
+#include <string>
 #include <unordered_map>
 
 extern Coordinator gCoordinator;
@@ -106,7 +107,7 @@ void PlayState::Enter()
     gCoordinator.AddComponent(
             mTestObject,
             TransformComponent{
-                .position = Vector2(800.f, screenHeight - (270.f + 120.f)),
+                .position = Vector2(1300.f, screenHeight - (270.f + 120.f)),
             });
     gCoordinator.AddComponent(
             mTestObject,
@@ -118,7 +119,7 @@ void PlayState::Enter()
     gCoordinator.AddComponent(
             mTestObject,
             BoxColliderComponent{
-                .position = Vector2(800.f, screenHeight - (270.f + 120.f)),
+                .position = Vector2(1300.f, screenHeight - (270.f + 120.f)),
                 .w = 120,
                 .h = 120
             });
@@ -248,6 +249,10 @@ void PlayState::HandleEvent(SDL_Event* e)
 
 void PlayState::Update(float deltaTime)
 {
+    // DEBUG
+    // const auto& transform = gCoordinator.GetComponent<TransformComponent>(mPlayer);
+    // SDL_Log(transform.position.PrintPosition().c_str());
+
     auto collisionSystem = gCoordinator.GetSystem<CollisionSystem>();
     // To make jump go higher when space is held
     if (mIsSpaceHeldDown && mSpaceInputCount > 0 && mSpaceInputCount < 10)
@@ -274,7 +279,7 @@ void PlayState::Update(float deltaTime)
         kinematics.acceleration.y = PhysicsSystem::kGravity;
     }
 
-    // If player hit a wall
+    // If player hit a wall (maybe for wall jump??)
     // if (collisionSystem->didPlayerHitWall() == true)
     // {
     //     SDL_Log("Slowing player down");

@@ -3,6 +3,7 @@
 // #include "PlayerMovementSystem.h"
 // #include "ScrollSystem.h"
 #include <SDL3/SDL_log.h>
+#include <cstdlib>
 #include <string>
 
 extern Coordinator gCoordinator;
@@ -211,10 +212,14 @@ bool CollisionSystem::isCurrentGroundDefined()
 }
 
 
-bool isColliderBClose(const BoxColliderComponent& colliderB)
-{
-    return (colliderB.position.x + colliderB.w >= 0.f) && (colliderB.position.x <= (1920.f / 2) + 100.f);
-}
+// bool isColliderBClose(const BoxColliderComponent& colliderA, const BoxColliderComponent& colliderB)
+// {
+//     int playerWidth = 64;
+//     int playerHeight = 64;
+//     bool horizontalCheck = ((std::abs(colliderA.position.x + colliderA.w - colliderB.position.x) <= playerWidth) || (std::abs(colliderA.position.x - (colliderB.position.x + colliderB.w))) <= playerWidth);
+//     bool verticalCheck = 
+//     // return (colliderB.position.x + colliderB.w >= 0.f) && (colliderB.position.x <= (1920.f / 2) + 100.f);
+// }
 
 
 void CollisionSystem::checkEntityCollision(Entity entityA, BoxColliderComponent& colliderA)
@@ -228,74 +233,78 @@ void CollisionSystem::checkEntityCollision(Entity entityA, BoxColliderComponent&
         {
             const auto& colliderB = gCoordinator.GetComponent<BoxColliderComponent>(entityB);
             
-            if (isColliderBClose(colliderB))
+            // if (isColliderBClose(colliderB))
+            // {
+            if (checkCollision(colliderA, colliderB))
             {
-                if (checkCollision(colliderA, colliderB))
+                // SDL_Log("COLLISION");
+                // entityA has to have kinematics I think...
+                checkCollisionSide(transformA.position, colliderA, colliderB);
+
+                // TODO: Need to add the logic for like slowing down
+                if (mCollisionBottom)
                 {
-                    // SDL_Log("COLLISION");
-                    // entityA has to have kinematics I think...
-                    checkCollisionSide(transformA.position, colliderA, colliderB);
+                    // SDL_Log("BOTTOM COLLISION");
 
-                    // TODO: Need to add the logic for like slowing down
-                    if (mCollisionBottom)
+                    // This is to help with the teleport up bug
+                    int leverage = 40.f;
+                    if (colliderA.position.y + colliderA.h < colliderB.position.y + leverage)
                     {
-                        // SDL_Log("BOTTOM COLLISION");
-
-                        // This is to help with the teleport up bug
-                        int leverage = 40.f;
-                        if (colliderA.position.y + colliderA.h < colliderB.position.y + leverage)
-                        {
-                            mCurrentGround = entityB;
-                            mIsOnGround = true;
-                            // mMoveMoves.y = -1 * (colliderA.position.y + colliderA.h - colliderB.position.y) - 1.f;
-                            kinematicsA.velocity.y = 0.f;
-                            kinematicsA.acceleration.y = 0.f;
-                            colliderA.position.y = colliderB.position.y - colliderA.h;
-                        }
-                    }
-                    else if (mCollisionTop)
-                    {
-                        // SDL_Log("TOP COLLISION");
-                        // mMoveMoves.y = ((colliderB.position.y + colliderB.h) - colliderA.position.y) + 1.f;
+                        mCurrentGround = entityB;
+                        mIsOnGround = true;
+                        // mMoveMoves.y = -1 * (colliderA.position.y + colliderA.h - colliderB.position.y) - 1.f;
                         kinematicsA.velocity.y = 0.f;
-                        colliderA.position.y = colliderB.position.y + colliderB.h;
-                    }
-
-                    // Side collisions
-                    else if (mCollisionRight)
-                    {
-                        mIsInvincible = true;
-                        // mMoveMoves.x = -1 * (colliderA.position.x + colliderA.w - colliderB.position.x) - 1.f;
-                        colliderA.position.x = colliderB.position.x - colliderA.w;
-                    }
-                    else if (mCollisionLeft)
-                    {
-                        // mMoveMoves.x = (colliderB.position.x + colliderB.w - colliderA.position.x) + 1.f;
-                        colliderA.position.x = colliderB.position.x + colliderB.w;
+                        kinematicsA.acceleration.y = 0.f;
+                        colliderA.position.y = colliderB.position.y - colliderA.h;
                     }
                 }
-                // No collision and in the air (scenario when you fall off an edge)
-                else if (mIsOnGround && isCurrentGroundDefined())
+                else if (mCollisionTop)
                 {
-                    // SDL_Log("No Collision");
-                    // When we restart game we need to reset this
-                    if (gCoordinator.HasComponent<BoxColliderComponent>(mCurrentGround))
-                    {
-                        const auto& groundCollider = gCoordinator.GetComponent<BoxColliderComponent>(mCurrentGround);
-                        if (groundCollider.position.x + groundCollider.w < colliderA.position.x || groundCollider.position.x > colliderA.position.x + colliderA.w)
-                        {
-                            mIsOnGround = false;
-                            mMoveMoves.y = -1.f;
+                    // SDL_Log("TOP COLLISION");
+                    // mMoveMoves.y = ((colliderB.position.y + colliderB.h) - colliderA.position.y) + 1.f;
+                    kinematicsA.velocity.y = 0.f;
+                    colliderA.position.y = colliderB.position.y + colliderB.h;
+                }
 
-                            kinematicsA.acceleration.y = PhysicsSystem::kGravity;
-                        }
-                    }
-                    else
-                    {
-                        mCurrentGround = MAX_ENTITIES + 1;
-                    }
+                // Side collisions
+                else if (mCollisionRight)
+                {
+                    mIsInvincible = true;
+                    // mMoveMoves.x = -1 * (colliderA.position.x + colliderA.w - colliderB.position.x) - 1.f;
+                    colliderA.position.x = colliderB.position.x - colliderA.w;
+                }
+                else if (mCollisionLeft)
+                {
+                    // mMoveMoves.x = (colliderB.position.x + colliderB.w - colliderA.position.x) + 1.f;
+                    colliderA.position.x = colliderB.position.x + colliderB.w;
                 }
             }
+            // No collision and in the air (scenario when you fall off an edge)
+            else if (mIsOnGround && isCurrentGroundDefined())
+            {
+                // SDL_Log("No Collision");
+                // When we restart game we need to reset this
+                if (gCoordinator.HasComponent<BoxColliderComponent>(mCurrentGround))
+                {
+                    const auto& groundCollider = gCoordinator.GetComponent<BoxColliderComponent>(mCurrentGround);
+                    if (groundCollider.position.x + groundCollider.w < colliderA.position.x || groundCollider.position.x > colliderA.position.x + colliderA.w)
+                    {
+                        mIsOnGround = false;
+                        mMoveMoves.y = -1.f;
+
+                        kinematicsA.acceleration.y = PhysicsSystem::kGravity;
+                    }
+                }
+                else
+                {
+                    mCurrentGround = MAX_ENTITIES + 1;
+                }
+            }
+            // }
+            // else
+            // {
+            //     SDL_Log("Collider to far.");
+            // }
         }
     }
 }
