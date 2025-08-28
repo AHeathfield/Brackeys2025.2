@@ -23,22 +23,11 @@ bool RenderSystem::Init()
     gScreenSize.x = DM->w;
     gScreenSize.y = DM->h;
 
-    // int screenWidth = 1920;
-    // int screenHeight = 1080;
-
-    // TODO: Don't hardcode this...
-    mCamera.x = 0.f;
-    mCamera.y = 0.f;
-    mCamera.w = gScreenSize.x;
-    mCamera.h = gScreenSize.y;
-
-    // Framerate Stuff
-    // mScreenFps = 60;
-    // capTimer = 
- 
+    // Initializing a default Camera
+    mCamera = Camera();
 
     // Initializing Window and Renderer
-    if (SDL_CreateWindowAndRenderer( "NastyTetris", gScreenSize.x, gScreenSize.y, 0, &mWindow, &mRenderer ) == false )
+    if (SDL_CreateWindowAndRenderer( "Risk It For The Biscuit", gScreenSize.x, gScreenSize.y, 0, &mWindow, &mRenderer ) == false )
     {
         SDL_Log( "Window could not be created! SDL error: %s\n", SDL_GetError() );
         return false;
@@ -65,9 +54,7 @@ bool RenderSystem::Init()
 
 
     // Initializing the render order
-    // createRenderOrder();
     mOldNumOfEntities = mEntities.size();
-    // mOldStateNumber = gCurrentState->GetStateNumber();
 
     // Everything initialize good
     return true;
@@ -82,7 +69,8 @@ void RenderSystem::Update(float deltaTime)
     gScreenSize.x = windowW;
     gScreenSize.y = windowH;
 
-    // TODO: Bound camera
+    // Updating Camera
+    mCamera.Update();
 
     // Fills the background
     SDL_SetRenderDrawColor( mRenderer, 0xFF, 0xFF, 0xFF,  0xFF );
@@ -154,116 +142,8 @@ void RenderSystem::Update(float deltaTime)
         }
     }
 
-    // TODO: THIS DOESN'T WORK, TRY TO GET IT TOO WORK!!
-    // Recreate the render order since an entity was deleted
-    // if (mOldStateNumber != gCurrentState->GetStateNumber() || mOldNumOfEntities > mEntities.size())
-    // {
-    //     // SDL_Log("Recreating renderer");
-    //     createRenderOrder();
-    // }
-    // // Update the render order since their is new entity
-    // else if (mOldNumOfEntities < mEntities.size())
-    // {
-    //     // SDL_Log("Updating Render");
-    //     auto it = mEntities.rbegin(); // Latest add
-    //     Entity newEntity;
-    //
-    //     for (int i = 0; i < mEntities.size() - mOldNumOfEntities; i++)
-    //     {
-    //         // Getting the new entity
-    //         if (i != 0)
-    //         {
-    //             it = prev(it);
-    //         }
-    //         newEntity = *it;
-    //
-    //         // Putting it in render order map
-    //         const auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(newEntity);
-    //         // If there is a texture with that depth size already
-    //         if (mRenderOrder.find(textureComponent.depth) != mRenderOrder.end())
-    //         {
-    //             mRenderOrder[textureComponent.depth].push_back(newEntity);
-    //         }
-    //         else
-    //         {
-    //             std::vector<Entity> tempArray = {newEntity};
-    //             mRenderOrder.insert({textureComponent.depth, tempArray});
-    //             mDepths.push_back(textureComponent.depth);
-    //         }
-    //     }
-    //     std::sort(mDepths.begin(), mDepths.end());
-    // }
-    // mOldStateNumber = gCurrentState->GetStateNumber();
-    // mOldNumOfEntities = mEntities.size();
-    //
-    // std::string log = "Diff Depths: " + std::to_string(mRenderOrder.size());
-    // SDL_Log(log.c_str());
-
-    // Render Textures 
-    // NOTE: Greater depth means it will be render on top
-    // for (int i = 0; i < mDepths.size(); i++)
-    // {
-    //     std::vector<Entity> entities = mRenderOrder.at(mDepths[i]);
-    //     for (const auto& entity : entities)
-    //     {
-    //         const auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(entity);
-    //         const auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(entity);
-    //
-    //         Render(transformComponent, textureComponent);
-    //     }
-    // }
-    // for (auto it = mRenderOrder.begin(); it != mRenderOrder.end(); it++)
-    // {
-    //     std::vector<Entity> entities = it->second;
-    //     // std::string log = "Depth: " + std::to_string(it->first) + ", Entities: " + std::to_string(entities.size());
-    //     // SDL_Log(log.c_str());
-    //
-    // }p
-    // if (mBg != MAX_ENTITIES + 1)
-    // {
-    //     const auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(mBg);
-    //     const auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(mBg);
-    //     Render(transformComponent, textureComponent);
-    // }
-    //
-    //
-    // for (const auto& entity : mEntities)
-    // {
-    //     if (entity == mPlayer || entity == mBg || entity == mFg)
-    //     {
-    //         continue;
-    //     }
-    //
-    //     const auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(entity);
-    //     const auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(entity);
-    //     Render(transformComponent, textureComponent);
-    // }
-    //
-    // if (mPlayer != MAX_ENTITIES + 1)
-    // {
-    //     const auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(mPlayer);
-    //     const auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(mPlayer);
-    //     Render(transformComponent, textureComponent);
-    // }
-    //
-    // if (mFg != MAX_ENTITIES + 1)
-    // {
-    //     const auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(mFg);
-    //     const auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(mFg);
-    //     Render(transformComponent, textureComponent);
-    // }
-    //
-    // if (mCurtain != MAX_ENTITIES + 1)
-    // {
-    //     const auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(mCurtain);
-    //     const auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(mCurtain);
-    //     Render(transformComponent, textureComponent);
-    // }
-
     // Update Screen
     SDL_RenderPresent(mRenderer);
- 
-    // TODO: Do the framerate stuff
 }
 
 bool RenderSystem::LoadAllMedia()
@@ -316,7 +196,9 @@ bool RenderSystem::LoadMedia(TextureComponent* textureComponent)
 
 void RenderSystem::Render(TransformComponent transfromComponent, TextureComponent textureComponent, double degrees, SDL_FPoint* center, SDL_FlipMode flipMode)
 {
-    SDL_FRect dstRect{ transfromComponent.position.x, transfromComponent.position.y, static_cast<float>(textureComponent.width), static_cast<float>(textureComponent.height) };
+    Vector2 camPos = mCamera.GetPosition();
+    Vector2 camOffset = mCamera.GetOffset();
+    SDL_FRect dstRect{ transfromComponent.position.x - camPos.x + camOffset.x, transfromComponent.position.y - camPos.y + camOffset.y, static_cast<float>(textureComponent.width), static_cast<float>(textureComponent.height) };
 
     //Default to clip dimensions if clip is given
     if (textureComponent.isSpriteClip())
@@ -363,6 +245,26 @@ void RenderSystem::DisableTextInput()
 {
     SDL_StopTextInput(mWindow);
 }
+
+
+// this might be useful one day...
+void RenderSystem::SetCamera(Camera& camera)
+{
+    mCamera = camera;
+}
+
+void RenderSystem::SetCameraFollowEntity(Entity entity)
+{
+    mCamera.FollowEntity(entity);
+}
+
+void RenderSystem::AdjustCameraOffset(Vector2& adjustment)
+{
+    Vector2 camOffset = mCamera.GetOffset();
+    mCamera.SetOffset(camOffset + adjustment);
+}
+
+
 
 void RenderSystem::Close()
 {
@@ -489,33 +391,4 @@ bool RenderSystem::loadFromRenderedText(TextureComponent* textureComponent)
 
     //Return success if texture loaded
     // return textureComponent->texture != nullptr;
-}
-
-void RenderSystem::createRenderOrder()
-{
-    mRenderOrder.clear();
-    // mDepths.clear();
-    
-    // Fills in the render order map
-    for (const auto& entity : mEntities)
-    {
-        auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(entity);
-        auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(entity);
-        RenderData renderData = {
-            .textureComponent = &textureComponent,
-            .transformComponent = &transformComponent
-        };
-
-        // If there is a texture with that depth size already
-        if (mRenderOrder.find(textureComponent.depth) != mRenderOrder.end())
-        {
-            mRenderOrder[textureComponent.depth].push_back(renderData);
-        }
-        else
-        {
-            std::vector<RenderData> tempArray = {renderData};
-            mRenderOrder.insert({textureComponent.depth, tempArray});
-            // mDepths.push_back(textureComponent.depth);
-        }
-    }
 }

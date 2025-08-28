@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 extern Coordinator gCoordinator;
+extern Vector2 gScreenSize;
 
 void PlayState::Enter()
 {
@@ -121,6 +122,13 @@ void PlayState::Enter()
                 .w = 120,
                 .h = 120
             });
+
+    // Setting Render camera to follow player
+    Camera playerCam = Camera();
+    playerCam.FollowEntity(mPlayer);
+    playerCam.SetOffset(Vector2(gScreenSize.x / 2, gScreenSize.y / 2));
+    gCoordinator.GetSystem<RenderSystem>()->SetCamera(playerCam);
+    // gCoordinator.GetSystem<RenderSystem>()->SetCameraFollowEntity(mPlayer);
 
     // Setting up update order
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<PhysicsSystem>());

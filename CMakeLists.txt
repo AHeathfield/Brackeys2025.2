@@ -39,6 +39,7 @@ add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
 set(SRCS 
     game.cpp
     src/Core/Utility.cpp
+    src/Core/Camera.cpp
     src/Systems/RenderSystem.cpp
     src/Systems/PhysicsSystem.cpp
     src/Systems/CollisionSystem.cpp

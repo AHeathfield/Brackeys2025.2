@@ -8,6 +8,7 @@
 #include "../Components/TransformComponent.h"
 #include "../Components/ControllerComponent.h"
 #include "../Core/ECS.h"
+#include "../Core/Camera.h"
 #include "../States/State.h"
 // #include "../States/TitleState.h"
 
@@ -57,26 +58,24 @@ public:
     void EnableTextInput();
     void DisableTextInput();
 
+    void SetCamera(Camera& camera);
+    void SetCameraFollowEntity(Entity entity);
+    void AdjustCameraOffset(Vector2& adjustment);
+
     // Closing stuff
     void Close();
-
-    // Entity mBg = MAX_ENTITIES + 1;
-    // Entity mFg = MAX_ENTITIES + 1;
-    // Entity mPlayer = MAX_ENTITIES + 1;
-    // Entity mCurtain = MAX_ENTITIES + 1;
 
 private:
     // Loads texture from file
     // We use TextureComponent& when we just want handle the object normally but its really big, we use TextureComponent* when we actually want to change the value of the object being passed in
     bool loadTexture(TextureComponent* textureComponent);
     bool loadFromRenderedText(TextureComponent* textureComponent);
-    void createRenderOrder();
 
 private:
     SDL_Renderer* mRenderer = nullptr;
     SDL_Window* mWindow = nullptr;
 
-    SDL_FRect mCamera;
+    Camera mCamera;
 
     // This is too store any textures we have loaded, <path, texture>
     std::unordered_map<std::string, SDL_Texture*> mTextures;
@@ -84,10 +83,7 @@ private:
     // Using the fact that map by nature is sorted using red-black tree, therefore keys will sorted least to greatest
     // The key is the texture depth
     std::map<int, std::vector<RenderData>> mRenderOrder;
-    // std::vector<int> mDepths;
+
     int mOldNumOfEntities = 0;
     int mOldStateNumber = 0;
-
-
-    // THIS IS A TEMP SOLUTION CHANGE
 };

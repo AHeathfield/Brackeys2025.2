@@ -1,6 +1,7 @@
 #pragma once
 
 #include "State.h"
+#include "../Core/Camera.h"
 #include "../Components/TextureComponent.h"
 #include "../Components/TransformComponent.h"
 #include "../Components/BoxColliderComponent.h"
