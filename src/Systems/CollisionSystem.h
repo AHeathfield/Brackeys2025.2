@@ -24,13 +24,14 @@ public:
 
 private:
     void checkCollisionSide(const Vector2& aPrevPos, const BoxColliderComponent& aCollider, const BoxColliderComponent& bCollider);
-    void checkEntityCollision(Entity entityA, const BoxColliderComponent& colliderA);
+    void checkEntityCollision(Entity entityA, BoxColliderComponent& colliderA);
     bool isCurrentGroundDefined();
 
 private:
     bool mStopMoving = false;
     bool mIsOnGround = true;
     bool mCollisionRight = false;
+    bool mCollisionLeft = false;
     bool mCollisionBottom = false;
     bool mCollisionTop = false;
     bool mCollisionGround = false;

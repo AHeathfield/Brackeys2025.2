@@ -41,32 +41,32 @@ void CollisionSystem::UpdateCollisions()
         {
             playerEntities.insert(entityA);
 
-            const auto& colliderA = gCoordinator.GetComponent<BoxColliderComponent>(entityA);
+            auto& colliderA = gCoordinator.GetComponent<BoxColliderComponent>(entityA);
             checkEntityCollision(entityA, colliderA);
         }
     }
 
     // Update the components
     // NOTE: playerEntities for now will just be the player entity however this could change if lets say he grabs a pogo stick or smt...
-    for (const auto& entity : playerEntities)
-    {
-        auto& collider = gCoordinator.GetComponent<BoxColliderComponent>(entity);
-
-        // YES THIS IS HARDCODED TO SOLVE A BUG LOL
-        if (mCollisionGround)
-        {
-            // 40 is player height
-            collider.position.y = 1080 - 270 - collider.h;
-        }
-        else
-        {
-            collider.position = collider.position + mMoveMoves;
-            if (mStopMoving)
-            {
-                gCoordinator.RemoveComponent<ControllerComponent>(entity);
-            }
-        }
-    }
+    // for (const auto& entity : playerEntities)
+    // {
+    //     auto& collider = gCoordinator.GetComponent<BoxColliderComponent>(entity);
+    //
+    //     // YES THIS IS HARDCODED TO SOLVE A BUG LOL
+    //     if (mCollisionGround)
+    //     {
+    //         // 40 is player height
+    //         collider.position.y = 1080 - 270 - collider.h;
+    //     }
+    //     else
+    //     {
+    //         collider.position = collider.position + mMoveMoves;
+    //         if (mStopMoving)
+    //         {
+    //             gCoordinator.RemoveComponent<ControllerComponent>(entity);
+    //         }
+    //     }
+    // }
     mCollisionGround = false;
 }
 
@@ -92,12 +92,13 @@ void CollisionSystem::SetPlayerIsOnGround(bool isOnGround)
 
 bool CollisionSystem::didPlayerHitWall()
 {
-    return mCollisionRight;
+    return mCollisionRight || mCollisionLeft;
 }
 
 
 // Private methods + Helper Functions
 
+// Going to use swept AABB
 void CollisionSystem::checkCollisionSide(const Vector2& aPrevPos, const BoxColliderComponent& aCollider, const BoxColliderComponent& bCollider)
 {
     // Check to see if it's ground collision
@@ -112,20 +113,48 @@ void CollisionSystem::checkCollisionSide(const Vector2& aPrevPos, const BoxColli
     // Obstacle collisions
     else
     {
-        const float leverage = 50.f; // Used to make collisions easier
-        if (aPrevPos.y + aCollider.h <= bCollider.position.y && aCollider.position.x + leverage >= bCollider.position.x)
+        // Old collision
+        // const float leverageY = 50.f; // Used to make collisions easier
+        // const float leverageX = 5.f;
+        // if (aPrevPos.y + aCollider.h <= bCollider.position.y && aCollider.position.x + leverageY >= bCollider.position.x)
+        // {
+        //     mCollisionBottom = true;
+        // }
+        // else if (aPrevPos.y >= bCollider.position.y + bCollider.h && aCollider.position.x >= bCollider.position.x)
+        // {
+        //     mCollisionTop = true;
+        // }
+        // if (aPrevPos.x + aCollider.w <= bCollider.position.x + leverageX && aCollider.position.y + aCollider.h >= bCollider.position.y)
+        // {
+        //     mCollisionRight = true;
+        // }
+
+        // Swept AABB detection
+        float overlapX = std::min(aCollider.position.x + aCollider.w, bCollider.position.x + bCollider.w) - std::max(aCollider.position.x, bCollider.position.x);
+        float overlapY = std::min(aCollider.position.y + aCollider.h, bCollider.position.y + bCollider.h) - std::max(aCollider.position.y, bCollider.position.y);
+
+        // Reslove axis with smallest overlap
+        if (overlapX < overlapY)
         {
-            mCollisionBottom = true;
+            if (aCollider.position.x < bCollider.position.x)
+            {
+                mCollisionRight = true;
+            }
+            else
+            {
+                mCollisionLeft = true;
+            }
         }
-        else if (aPrevPos.y >= bCollider.position.y + bCollider.h && aCollider.position.x >= bCollider.position.x)
+        else
         {
-            mCollisionTop = true;
-        }
-        // Note there will never be a Left collision in this game, not yet at least...
-        // If they are in IFrames we just ignore the collision
-        else if (!mIsInvincible)
-        {
-            mCollisionRight = true;
+            if (aCollider.position.y < bCollider.position.y)
+            {
+                mCollisionBottom = true;
+            }
+            else
+            {
+                mCollisionTop = true;
+            }
         }
     }
 }
@@ -188,7 +217,7 @@ bool isColliderBClose(const BoxColliderComponent& colliderB)
 }
 
 
-void CollisionSystem::checkEntityCollision(Entity entityA, const BoxColliderComponent& colliderA)
+void CollisionSystem::checkEntityCollision(Entity entityA, BoxColliderComponent& colliderA)
 {
     auto& transformA = gCoordinator.GetComponent<TransformComponent>(entityA);
     auto& kinematicsA = gCoordinator.GetComponent<KinematicsComponent>(entityA);
@@ -218,22 +247,31 @@ void CollisionSystem::checkEntityCollision(Entity entityA, const BoxColliderComp
                         {
                             mCurrentGround = entityB;
                             mIsOnGround = true;
-                            mMoveMoves.y = -1 * (colliderA.position.y + colliderA.h - colliderB.position.y) - 1.f;
+                            // mMoveMoves.y = -1 * (colliderA.position.y + colliderA.h - colliderB.position.y) - 1.f;
                             kinematicsA.velocity.y = 0.f;
                             kinematicsA.acceleration.y = 0.f;
+                            colliderA.position.y = colliderB.position.y - colliderA.h;
                         }
                     }
                     else if (mCollisionTop)
                     {
                         // SDL_Log("TOP COLLISION");
-                        mMoveMoves.y = ((colliderB.position.y + colliderB.h) - colliderA.position.y) + 1.f;
+                        // mMoveMoves.y = ((colliderB.position.y + colliderB.h) - colliderA.position.y) + 1.f;
                         kinematicsA.velocity.y = 0.f;
+                        colliderA.position.y = colliderB.position.y + colliderB.h;
                     }
+
+                    // Side collisions
                     else if (mCollisionRight)
                     {
                         mIsInvincible = true;
-                        // SDL_Log("SIDE COLLISION");
-                        // mStopMoving = true; // Player can no longer jump
+                        // mMoveMoves.x = -1 * (colliderA.position.x + colliderA.w - colliderB.position.x) - 1.f;
+                        colliderA.position.x = colliderB.position.x - colliderA.w;
+                    }
+                    else if (mCollisionLeft)
+                    {
+                        // mMoveMoves.x = (colliderB.position.x + colliderB.w - colliderA.position.x) + 1.f;
+                        colliderA.position.x = colliderB.position.x + colliderB.w;
                     }
                 }
                 // No collision and in the air (scenario when you fall off an edge)
@@ -244,7 +282,7 @@ void CollisionSystem::checkEntityCollision(Entity entityA, const BoxColliderComp
                     if (gCoordinator.HasComponent<BoxColliderComponent>(mCurrentGround))
                     {
                         const auto& groundCollider = gCoordinator.GetComponent<BoxColliderComponent>(mCurrentGround);
-                        if (groundCollider.position.x + groundCollider.w < colliderA.position.x)
+                        if (groundCollider.position.x + groundCollider.w < colliderA.position.x || groundCollider.position.x > colliderA.position.x + colliderA.w)
                         {
                             mIsOnGround = false;
                             mMoveMoves.y = -1.f;
