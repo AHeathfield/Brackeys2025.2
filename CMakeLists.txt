@@ -40,22 +40,23 @@ set(SRCS
     game.cpp
     src/Core/Utility.cpp
     src/Core/Camera.cpp
+    src/Components/Buttons/StateChangerButton.cpp
+    src/Components/Colliders/PlayerCollider.cpp
+    src/Components/Colliders/TileCollider.cpp
     src/Systems/RenderSystem.cpp
     src/Systems/PhysicsSystem.cpp
     src/Systems/CollisionSystem.cpp
-    src/Systems/PlayerMovementSystem.cpp
     src/Systems/ScoreSystem.cpp
-    src/Systems/ScrollSystem.cpp
     src/Systems/AnimationSystem.cpp
     src/Systems/AudioSystem.cpp
+    src/Systems/MoveSystem.cpp
     # src/States/State.cpp
     src/States/TitleState.cpp
     src/States/PlayState.cpp
-    src/Components/Buttons/StateChangerButton.cpp
-    src/Biomes/StartingBiome.cpp
-    src/Biomes/ForestBiome.cpp
-    src/Biomes/CityBiome.cpp
-    src/Biomes/DesertBiome.cpp
+    # src/Biomes/StartingBiome.cpp
+    # src/Biomes/ForestBiome.cpp
+    # src/Biomes/CityBiome.cpp
+    # src/Biomes/DesertBiome.cpp
 )
 
 # Creating the game Executables

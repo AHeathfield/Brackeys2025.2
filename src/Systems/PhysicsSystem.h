@@ -2,7 +2,7 @@
 
 #include "../Core/ECS.h"
 #include "../Core/Timer.h"
-#include "../Components/BoxColliderComponent.h"
+#include "../Components/Colliders/BoxColliderComponent.h"
 #include "../Components/KinematicsComponent.h"
 
 // The Physics System will update the entities Collider

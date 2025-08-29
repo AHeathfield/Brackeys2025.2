@@ -13,27 +13,28 @@
 #include <typeinfo>
 
 // ECS
+// Components
 #include "src/Core/ECS.h"
 #include "src/Components/TextureComponent.h"
 #include "src/Components/TransformComponent.h"
-#include "src/Components/BoxColliderComponent.h"
+#include "src/Components/Colliders/BoxColliderComponent.h"
 #include "src/Components/ScoreComponent.h"
-#include "src/Components/ScrollComponent.h"
 #include "src/Components/ControllerComponent.h"
 #include "src/Components/KinematicsComponent.h"
 #include "src/Components/AnimationComponent.h"
 #include "src/Components/AudioComponent.h"
+#include "src/Components/HurtComponent.h"
+#include "src/Components/CollectibleComponent.h"
 
+// Systems
 #include "src/Core/Vector2.h"
 #include "src/Systems/RenderSystem.h"
-// #include "src/Systems/MouseButtonSystem.h"
 #include "src/Systems/PhysicsSystem.h"
 #include "src/Systems/CollisionSystem.h"
-// #include "src/Systems/PlayerMovementSystem.h"
 #include "src/Systems/ScoreSystem.h"
-#include "src/Systems/ScrollSystem.h"
 #include "src/Systems/AnimationSystem.h"
 #include "src/Systems/AudioSystem.h"
+#include "src/Systems/MoveSystem.h"
 
 // States
 #include "src/States/State.h"
@@ -129,14 +130,15 @@ int main( int argc, char* args[] )
     // Registering Components
     gCoordinator.RegisterComponent<TextureComponent>();
     gCoordinator.RegisterComponent<TransformComponent>();
-    gCoordinator.RegisterComponent<BoxColliderComponent>();
     gCoordinator.RegisterComponent<ScoreComponent>();
-    gCoordinator.RegisterComponent<ScrollComponent>();
     gCoordinator.RegisterComponent<ControllerComponent>();
     gCoordinator.RegisterComponent<KinematicsComponent>();
     gCoordinator.RegisterComponent<AnimationComponent>();
     gCoordinator.RegisterComponent<AudioComponent>();
+    gCoordinator.RegisterComponent<HurtComponent>();
+    gCoordinator.RegisterComponent<CollectibleComponent>();
     gCoordinator.RegisterComponent<ButtonComponent*>();
+    gCoordinator.RegisterComponent<BoxColliderComponent*>();
 
     // Registering Systems
     // Render System
@@ -145,7 +147,6 @@ int main( int argc, char* args[] )
         Signature signature;
         signature.set(gCoordinator.GetComponentType<TextureComponent>());
         signature.set(gCoordinator.GetComponentType<TransformComponent>());
-        // TODO: EXPLAIN I FORGOT THIS LINE ON NEXT STREAM
         gCoordinator.SetSystemSignature<RenderSystem>(signature);
     }
     renderSystem->Init();
@@ -172,7 +173,7 @@ int main( int argc, char* args[] )
     auto physicsSystem = gCoordinator.RegisterSystem<PhysicsSystem>();
     {
         Signature signature;
-        signature.set(gCoordinator.GetComponentType<BoxColliderComponent>());
+        signature.set(gCoordinator.GetComponentType<BoxColliderComponent*>());
         signature.set(gCoordinator.GetComponentType<KinematicsComponent>());
         gCoordinator.SetSystemSignature<PhysicsSystem>(signature);
     }
@@ -185,41 +186,6 @@ int main( int argc, char* args[] )
         signature.set(gCoordinator.GetComponentType<TextureComponent>());
         gCoordinator.SetSystemSignature<AnimationSystem>(signature);
     }
-
-
-    // Shape System
-    // auto shapeSystem = gCoordinator.RegisterSystem<ShapeSystem>();
-    // {
-    //     Signature signature;
-    //     // signature.set(gCoordinator.GetComponentType<MoveComponent>());
-    //     gCoordinator.SetSystemSignature<ShapeSystem>(signature);
-    // }
-
-    // Play Shape System
-    // auto playShapeSystem = gCoordinator.RegisterSystem<PlayShapeSystem>();
-    // {
-    //     Signature signature;
-    //     signature.set(gCoordinator.GetComponentType<MoveComponent>());
-    //     gCoordinator.SetSystemSignature<PlayShapeSystem>(signature);
-    // }
-
-    // Hold System
-    // auto holdSystem = gCoordinator.RegisterSystem<HoldSystem>();
-    // {
-    //     Signature signature;
-    //     signature.set(gCoordinator.GetComponentType<HoldComponent>());
-    //     gCoordinator.SetSystemSignature<HoldSystem>(signature);
-    // }
-
-    // Row System
-    // auto rowSystem = gCoordinator.RegisterSystem<RowSystem>();
-    // {
-    //     Signature signature;
-    //     signature.set(gCoordinator.GetComponentType<RowComponent>());
-    //     signature.set(gCoordinator.GetComponentType<TransformComponent>());
-    //     signature.set(gCoordinator.GetComponentType<TextureComponent>());
-    //     gCoordinator.SetSystemSignature<RowSystem>(signature);
-    // }
 
     // Score System
     auto scoreSystem = gCoordinator.RegisterSystem<ScoreSystem>();
@@ -236,28 +202,20 @@ int main( int argc, char* args[] )
     {
         Signature signature;
         signature.set(gCoordinator.GetComponentType<TransformComponent>());
-        signature.set(gCoordinator.GetComponentType<BoxColliderComponent>());
+        signature.set(gCoordinator.GetComponentType<BoxColliderComponent*>());
         gCoordinator.SetSystemSignature<CollisionSystem>(signature);
     }
 
-    // Scroll System
-    auto scrollSystem = gCoordinator.RegisterSystem<ScrollSystem>();
+    // Move System
+    auto moveSystem = gCoordinator.RegisterSystem<MoveSystem>();
     {
         Signature signature;
         signature.set(gCoordinator.GetComponentType<TransformComponent>());
-        gCoordinator.SetSystemSignature<ScrollSystem>(signature);
+        signature.set(gCoordinator.GetComponentType<BoxColliderComponent*>());
+        signature.set(gCoordinator.GetComponentType<KinematicsComponent>());
+        gCoordinator.SetSystemSignature<MoveSystem>(signature);
     }
 
-
-    // Player Event System
-    // auto playerMovementSystem = gCoordinator.RegisterSystem<PlayerMovementSystem>();
-    // {
-    //     Signature signature;
-    //     signature.set(gCoordinator.GetComponentType<ControllerComponent>());
-    //     signature.set(gCoordinator.GetComponentType<KinematicsComponent>());
-    //     // signature.set(gCoordinator.GetComponentType<BoxColliderComponent>());
-    //     gCoordinator.SetSystemSignature<PlayerMovementSystem>(signature);
-    // }
     // Other systems...
 
 
@@ -329,38 +287,9 @@ int main( int argc, char* args[] )
 
                 // NEW, now state handles events!
                 gCurrentState->HandleEvent(&e);
-
-                // if (typeid(*gCurrentState) == typeid(TitleState))
-                // {
-                //     mouseButtonSystem->HandleEvent(&e);
-                // }
-                //
-                // if (typeid(*gCurrentState) == typeid(PlayState))
-                // {
-                //     playerMovementSystem->HandleEvent(e);
-                // }
             }
+
             gCurrentState->Update(deltaTime);
-
-            // If current state is PlayState
-            // if (typeid(*gCurrentState) == typeid(PlayState))
-            // {
-            //     // SDL_Log("IN PLAYSTATE");
-            //     // playerMovementSystem->Update();
-            //     scrollSystem->Update(deltaTime);
-            //     physicsSystem->Update(deltaTime);
-            //     collisionSystem->Update(deltaTime);
-            //     animationSystem->Update(deltaTime);
-            //     renderSystem->Update(deltaTime);
-            //     audioSystem->Update(deltaTime);
-            //     // collisionSystem->UpdateCollisions();
-            //     // collisionSystem->UpdateTransforms();
-            // }
-
-            // scoreSystem->Update();
-            // animationSystem->Update(deltaTime);
-            // renderSystem->Update(deltaTime);
-            // audioSystem->Update(deltaTime);
 
             // If time remaining in frame
             constexpr Uint64 nsPerFrame = 1000000000 / kScreenFps; 

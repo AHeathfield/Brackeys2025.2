@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Core/ECS.h"
-#include "../Components/BoxColliderComponent.h"
+#include "../Components/Colliders/BoxColliderComponent.h"
 #include "../Components/TransformComponent.h"
 #include "../Components/ControllerComponent.h"
 #include "../Components/KinematicsComponent.h"
@@ -23,8 +23,8 @@ public:
     bool didPlayerHitWall();
 
 private:
-    void checkCollisionSide(const Vector2& aPrevPos, const BoxColliderComponent& aCollider, const BoxColliderComponent& bCollider);
-    void checkEntityCollision(Entity entityA, BoxColliderComponent& colliderA);
+    void checkCollisionSide(const Vector2& aPrevPos, const BoxColliderComponent* aCollider, const BoxColliderComponent* bCollider);
+    void checkEntityCollision(Entity entityA, BoxColliderComponent* colliderA);
     bool isCurrentGroundDefined();
 
 private:

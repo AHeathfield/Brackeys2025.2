@@ -34,7 +34,7 @@ void PlayState::Enter()
     gCoordinator.AddComponent(
             mPlayer,
             TransformComponent{
-                .position = Vector2((screenWidth / 2) - 32.f, screenHeight - 334.f),
+                .position = Vector2(200.f, 500.f),
             });
     gCoordinator.AddComponent(
             mPlayer,
@@ -44,13 +44,17 @@ void PlayState::Enter()
                 .path = "src/Assets/RunSpriteSheetTEST.png",
                 .depth = 10
             });
+    BoxColliderComponent* playerCollider = new PlayerCollider(
+        Vector2(200.f, 500.f), //screenHeight - 334.f),
+        64,
+        64,
+        mPlayer
+    );
     gCoordinator.AddComponent(
             mPlayer,
-            BoxColliderComponent{
-                .position = Vector2((screenWidth / 2) - 32.f, screenHeight - 334.f),
-                .w = 64,
-                .h = 64
-            });
+            playerCollider
+            );
+    playerCollider = nullptr;
     gCoordinator.AddComponent(
             mPlayer,
             KinematicsComponent{
@@ -94,13 +98,23 @@ void PlayState::Enter()
                 .texture = nullptr,
                 .path = "src/Assets/Starting.png",
             });
+    BoxColliderComponent* groundCollider = new TileCollider(
+        Vector2(0.f, screenHeight - 270.f),
+        7680,
+        270
+    );
     gCoordinator.AddComponent(
             mGround,
-            BoxColliderComponent{
-                .position = Vector2(0.f, screenHeight - 270.f),
-                .w = 7680,
-                .h = 270
-            });
+            groundCollider
+            );
+    groundCollider = nullptr;
+    // gCoordinator.AddComponent(
+    //         mGround,
+    //         BoxColliderComponent{
+    //             .position = Vector2(0.f, screenHeight - 270.f),
+    //             .w = 7680,
+    //             .h = 270
+    //         });
 
     // Adding some test objs for level
     mTestObject = gCoordinator.CreateEntity();
@@ -116,13 +130,41 @@ void PlayState::Enter()
                 .spriteClip = SDL_FRect{0.f, 0.f, 120.f, 120.f},
                 .path = "src/Assets/SandStoneSpriteSheet.png",
             });
+    BoxColliderComponent* testObjCollider = new TileCollider(
+            Vector2(1300.f, screenHeight - (270.f + 120.f)),
+            120,
+            120
+    );
     gCoordinator.AddComponent(
             mTestObject,
-            BoxColliderComponent{
-                .position = Vector2(1300.f, screenHeight - (270.f + 120.f)),
-                .w = 120,
-                .h = 120
+            testObjCollider
+            );
+    testObjCollider = nullptr;
+
+
+    mTestObjectAir = gCoordinator.CreateEntity();
+    gCoordinator.AddComponent(
+            mTestObjectAir,
+            TransformComponent{
+                .position = Vector2(1000.f, 400.f),
             });
+    gCoordinator.AddComponent(
+            mTestObjectAir,
+            TextureComponent{
+                .texture = nullptr,
+                .spriteClip = SDL_FRect{0.f, 0.f, 120.f, 120.f},
+                .path = "src/Assets/SandStoneSpriteSheet.png",
+            });
+    BoxColliderComponent* testObjAirCollider = new TileCollider(
+            Vector2(1000.f, 400.f),
+            120,
+            120
+    );
+    gCoordinator.AddComponent(
+            mTestObjectAir,
+            testObjAirCollider
+            );
+    testObjAirCollider = nullptr;
 
     // Setting Render camera to follow player
     Camera playerCam = Camera();
@@ -134,6 +176,7 @@ void PlayState::Enter()
     // Setting up update order
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<PhysicsSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<CollisionSystem>());
+    mSystemUpdateOrder.push_back(gCoordinator.GetSystem<MoveSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AnimationSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<RenderSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AudioSystem>());
@@ -149,12 +192,14 @@ void PlayState::Exit()
     gCoordinator.GetComponent<TextureComponent>(mBackground).destroy();
     gCoordinator.GetComponent<TextureComponent>(mGround).destroy();
     gCoordinator.GetComponent<TextureComponent>(mTestObject).destroy();
+    gCoordinator.GetComponent<TextureComponent>(mTestObjectAir).destroy();
 
     // Destroying entities
     gCoordinator.DestroyEntity(mPlayer);
     gCoordinator.DestroyEntity(mGround);
     gCoordinator.DestroyEntity(mBackground);
     gCoordinator.DestroyEntity(mTestObject);
+    gCoordinator.DestroyEntity(mTestObjectAir);
 }
 
 
@@ -175,11 +220,14 @@ void PlayState::HandleEvent(SDL_Event* e)
             if (mSpaceInputCount == 0)
             {
                 // NOTE: positive y is downwards
-                kinematics.velocity.y = -1250.f;
+                kinematics.velocity.y = -900.f;
                 kinematics.acceleration.y = PhysicsSystem::kGravity;
 
-                auto collisionSystem = gCoordinator.GetSystem<CollisionSystem>();
-                collisionSystem->SetPlayerIsOnGround(false);
+                // auto collisionSystem = gCoordinator.GetSystem<CollisionSystem>();
+                // collisionSystem->SetPlayerIsOnGround(false);
+                auto& temp = gCoordinator.GetComponent<BoxColliderComponent*>(mPlayer);
+                PlayerCollider* playerCollider = static_cast<PlayerCollider*>(temp);
+                playerCollider->SetPlayerIsOnGround(false);
             }
 
             // So it only recognizes 10 extra inputs
@@ -253,46 +301,63 @@ void PlayState::Update(float deltaTime)
     // const auto& transform = gCoordinator.GetComponent<TransformComponent>(mPlayer);
     // SDL_Log(transform.position.PrintPosition().c_str());
 
-    auto collisionSystem = gCoordinator.GetSystem<CollisionSystem>();
-    // To make jump go higher when space is held
-    if (mIsSpaceHeldDown && mSpaceInputCount > 0 && mSpaceInputCount < 10)
+    // auto collisionSystem = gCoordinator.GetSystem<CollisionSystem>();
+
+    if (gCoordinator.HasComponent<BoxColliderComponent*>(mPlayer))
     {
-        auto& kinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
-        
-        // Only apply on the way up not when falling
-        if (kinematics.velocity.y < 0.f)
+        auto& temp = gCoordinator.GetComponent<BoxColliderComponent*>(mPlayer);
+        PlayerCollider* playerCollider = static_cast<PlayerCollider*>(temp);
+        // To make jump go higher when space is held
+        if (mIsSpaceHeldDown && mSpaceInputCount > 0 && mSpaceInputCount < 10)
         {
-            kinematics.velocity.y -= 10.f;
+            auto& kinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
+            
+            // Only apply on the way up not when falling
+            if (kinematics.velocity.y < 0.f)
+            {
+                kinematics.velocity.y -= 10.f;
+            }
         }
-    }
 
-    // When jump is complete and when your back on the ground
-    else if (!mIsSpaceHeldDown && mSpaceInputCount > 0 && collisionSystem->IsPlayerOnGround())
-    {
-        mSpaceInputCount = 0;
-    }
+        // When jump is complete and when your back on the ground
+        else if (!mIsSpaceHeldDown && mSpaceInputCount > 0 && playerCollider->IsPlayerOnGround())
+        {
+            mSpaceInputCount = 0;
+        }
 
-    // If player is not on ground
-    if (!collisionSystem->IsPlayerOnGround())
-    {
-        auto& kinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
-        kinematics.acceleration.y = PhysicsSystem::kGravity;
-    }
+        // If player is not on ground
+        if (!playerCollider->IsPlayerOnGround())
+        {
+            auto& kinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
+            kinematics.acceleration.y = PhysicsSystem::kGravity;
+        }
 
-    // If player hit a wall (maybe for wall jump??)
-    // if (collisionSystem->didPlayerHitWall() == true)
-    // {
-    //     SDL_Log("Slowing player down");
-    //     auto scrollSystem = gCoordinator.GetSystem<ScrollSystem>();
-    //     float scrollSpeed = scrollSystem->GetScrollSpeed();
-    //     // It halfs it plus a lil more
-    //     scrollSystem->DecreaseScrollSpeed((scrollSpeed / 2) + kDecreaseSpeedAmount);
-    // }
+        // If player hit a wall (maybe for wall jump??)
+        // if (collisionSystem->didPlayerHitWall() == true)
+        // {
+        //     SDL_Log("Slowing player down");
+        //     auto scrollSystem = gCoordinator.GetSystem<ScrollSystem>();
+        //     float scrollSpeed = scrollSystem->GetScrollSpeed();
+        //     // It halfs it plus a lil more
+        //     scrollSystem->DecreaseScrollSpeed((scrollSpeed / 2) + kDecreaseSpeedAmount);
+        // }
 
 
-    // Updating systems
-    for (int i = 0; i < mSystemUpdateOrder.size(); i++)
-    {
-        mSystemUpdateOrder[i]->Update(deltaTime);
+        // Updating systems
+        for (int i = 0; i < mSystemUpdateOrder.size(); i++)
+        {
+            mSystemUpdateOrder[i]->Update(deltaTime);
+
+            // Going to handle any collisions that occur
+            // if (mSystemUpdateOrder[i].get() == collisionSystem.get())
+            // {
+            //     auto& playerCollider = gCoordinator.GetComponent<BoxColliderComponent*>(mPlayer);
+            //
+            //     if (playerCollider->isColliding())
+            //     {
+            //         SDL_Log
+            //     }
+            // }
+        }
     }
 }
