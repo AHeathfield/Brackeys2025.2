@@ -12,6 +12,8 @@ void PlayState::Enter()
     const float screenHeight = 1080.f;
     const float screenWidth = 1920.f;
 
+    BoxColliderComponent* boxCollider = nullptr;
+
     // Initializing the ScrollSystem
     // auto mScrollSystem = gCoordinator.GetSystem<ScrollSystem>();
     // mScrollSystem->Init();
@@ -30,7 +32,6 @@ void PlayState::Enter()
         .isLooping = true
     };
     playerAnimations.insert({"Run", run});
-
     gCoordinator.AddComponent(
             mPlayer,
             TransformComponent{
@@ -44,7 +45,7 @@ void PlayState::Enter()
                 .path = "src/Assets/RunSpriteSheetTEST.png",
                 .depth = 10
             });
-    BoxColliderComponent* playerCollider = new PlayerCollider(
+    boxCollider = new PlayerCollider(
         Vector2(200.f, 500.f), //screenHeight - 334.f),
         64,
         64,
@@ -52,9 +53,8 @@ void PlayState::Enter()
     );
     gCoordinator.AddComponent(
             mPlayer,
-            playerCollider
+            boxCollider
             );
-    playerCollider = nullptr;
     gCoordinator.AddComponent(
             mPlayer,
             KinematicsComponent{
@@ -68,6 +68,34 @@ void PlayState::Enter()
             mPlayer,
             ControllerComponent{
             });
+    gCoordinator.AddComponent(
+            mPlayer,
+            BiscuitComponent{
+            });
+
+    mBiscuit = gCoordinator.CreateEntity();
+    gCoordinator.AddComponent(
+            mBiscuit,
+            TransformComponent{
+                .position = Vector2(1400.f, 500.f),
+            });
+    gCoordinator.AddComponent(
+            mBiscuit,
+            TextureComponent{
+                .texture = nullptr,
+                .spriteClip = SDL_FRect{0.f, 0.f, 40.f, 40.f},
+                .path = "src/Assets/yellowBlock.png",
+                .depth = 10
+            });
+    boxCollider = new BiscuitCollider(
+        Vector2(1400.f, 500.f), //screenHeight - 334.f),
+        40,
+        40
+    );
+    gCoordinator.AddComponent(
+            mBiscuit,
+            boxCollider
+            );
 
 
 
@@ -98,16 +126,19 @@ void PlayState::Enter()
                 .texture = nullptr,
                 .path = "src/Assets/Starting.png",
             });
-    BoxColliderComponent* groundCollider = new TileCollider(
+    boxCollider = new TileCollider(
         Vector2(0.f, screenHeight - 270.f),
         7680,
         270
     );
     gCoordinator.AddComponent(
             mGround,
-            groundCollider
+            boxCollider
             );
-    groundCollider = nullptr;
+    gCoordinator.AddComponent(
+            mGround,
+            SolidComponent{
+            });
     // gCoordinator.AddComponent(
     //         mGround,
     //         BoxColliderComponent{
@@ -130,17 +161,19 @@ void PlayState::Enter()
                 .spriteClip = SDL_FRect{0.f, 0.f, 120.f, 120.f},
                 .path = "src/Assets/SandStoneSpriteSheet.png",
             });
-    BoxColliderComponent* testObjCollider = new TileCollider(
+    boxCollider = new TileCollider(
             Vector2(1300.f, screenHeight - (270.f + 120.f)),
             120,
             120
     );
     gCoordinator.AddComponent(
             mTestObject,
-            testObjCollider
+            boxCollider
             );
-    testObjCollider = nullptr;
-
+    gCoordinator.AddComponent(
+            mTestObject,
+            SolidComponent{
+            });
 
     mTestObjectAir = gCoordinator.CreateEntity();
     gCoordinator.AddComponent(
@@ -155,16 +188,19 @@ void PlayState::Enter()
                 .spriteClip = SDL_FRect{0.f, 0.f, 120.f, 120.f},
                 .path = "src/Assets/SandStoneSpriteSheet.png",
             });
-    BoxColliderComponent* testObjAirCollider = new TileCollider(
+    boxCollider = new TileCollider(
             Vector2(1000.f, 400.f),
             120,
             120
     );
     gCoordinator.AddComponent(
             mTestObjectAir,
-            testObjAirCollider
+            boxCollider
             );
-    testObjAirCollider = nullptr;
+    gCoordinator.AddComponent(
+            mTestObjectAir,
+            SolidComponent{
+            });
 
     // Setting Render camera to follow player
     Camera playerCam = Camera();
@@ -180,6 +216,8 @@ void PlayState::Enter()
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AnimationSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<RenderSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AudioSystem>());
+
+    boxCollider = nullptr;
 }
 
 void PlayState::Exit()

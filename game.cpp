@@ -24,7 +24,9 @@
 #include "src/Components/AnimationComponent.h"
 #include "src/Components/AudioComponent.h"
 #include "src/Components/HurtComponent.h"
-#include "src/Components/CollectibleComponent.h"
+#include "src/Components/CollectibleComponent.h" // I don't think we need to use this, I'm just going to do biscuitcomponent instead, may be good in the future though...
+#include "src/Components/BiscuitComponent.h"
+#include "src/Components/SolidComponent.h"
 
 // Systems
 #include "src/Core/Vector2.h"
@@ -137,6 +139,8 @@ int main( int argc, char* args[] )
     gCoordinator.RegisterComponent<AudioComponent>();
     gCoordinator.RegisterComponent<HurtComponent>();
     gCoordinator.RegisterComponent<CollectibleComponent>();
+    gCoordinator.RegisterComponent<BiscuitComponent>();
+    gCoordinator.RegisterComponent<SolidComponent>();
     gCoordinator.RegisterComponent<ButtonComponent*>();
     gCoordinator.RegisterComponent<BoxColliderComponent*>();
 

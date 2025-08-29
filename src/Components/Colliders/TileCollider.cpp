@@ -7,7 +7,7 @@ TileCollider::TileCollider(const Vector2& pos, int width, int height)
     : BoxColliderComponent(pos, width, height)
 {}
 
-void TileCollider::HandleCollision(Entity other)
+void TileCollider::HandleCollision(Entity self, Entity other)
 {
     // SDL_Log("Handling tile collision");
 }

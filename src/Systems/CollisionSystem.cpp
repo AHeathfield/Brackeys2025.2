@@ -35,16 +35,21 @@ void CollisionSystem::UpdateCollisions()
     //     mIsInvincible = false;
     // }
 
+    // Can probably replace this with
     for (const auto& entityA : mEntities)
     {
         // This is to check for the player, we know player entity has the controller component (currently it is the only entity
         // with it, if this changes we can just make a PlayerComponent or smt)
         if (gCoordinator.HasComponent<ControllerComponent>(entityA))
         {
-            playerEntities.insert(entityA);
+            // playerEntities.insert(entityA);
 
             auto& colliderA = gCoordinator.GetComponent<BoxColliderComponent*>(entityA);
-            checkEntityCollision(entityA, colliderA);
+
+            if (colliderA->isActive)
+            {
+                checkEntityCollision(entityA, colliderA);
+            }
         }
     }
 
@@ -209,6 +214,13 @@ void CollisionSystem::checkEntityCollision(Entity entityA, BoxColliderComponent*
         if (entityA != entityB)
         {
             auto& colliderB = gCoordinator.GetComponent<BoxColliderComponent*>(entityB);
+
+            // Skip entity if collider is not active
+            if (!colliderB->isActive)
+            {
+                continue;
+            }
+
             colliderB->resetCollisionSide();
             
             if (checkCollision(colliderA, colliderB))
@@ -256,8 +268,8 @@ void CollisionSystem::checkEntityCollision(Entity entityA, BoxColliderComponent*
             }
 
             // Handling The Collisions for both entities (even if none)
-            colliderA->HandleCollision(entityB);
-            colliderB->HandleCollision(entityA);
+            colliderA->HandleCollision(entityA, entityB);
+            colliderB->HandleCollision(entityB, entityA);
 
             // No collision and in the air (scenario when you fall off an edge)
             // else if (mIsOnGround && isCurrentGroundDefined())

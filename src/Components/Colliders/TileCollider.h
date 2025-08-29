@@ -6,5 +6,5 @@ class TileCollider : public BoxColliderComponent
 {
 public:
     TileCollider(const Vector2& pos, int width, int height);
-    void HandleCollision(Entity other) override;
+    void HandleCollision(Entity self, Entity other) override;
 };

@@ -4,9 +4,11 @@
 #include "../Core/Camera.h"
 #include "../Components/TextureComponent.h"
 #include "../Components/TransformComponent.h"
+#include "../Components/BiscuitComponent.h"
 #include "../Components/Colliders/BoxColliderComponent.h"
 #include "../Components/Colliders/PlayerCollider.h"
 #include "../Components/Colliders/TileCollider.h"
+#include "../Components/Colliders/BiscuitCollider.h"
 #include "../Components/ControllerComponent.h"
 #include "../Components/KinematicsComponent.h"
 #include "../Components/AnimationComponent.h"
@@ -34,6 +36,7 @@ private:
 
 private:
     Entity mPlayer;
+    Entity mBiscuit;
     Entity mGround;
     Entity mBackground;
     Entity mTestObject;

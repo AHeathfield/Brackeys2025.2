@@ -18,15 +18,11 @@ struct BoxColliderComponent
     int w;
     int h;
 
-
     CollisionSide collisionSide = CollisionSide::NONE;
-    // bool isBottomColliding = false;
-    // bool isTopColliding = false;
-    // bool isRightColliding = false;
-    // bool isLeftColliding = false;
+    bool isActive = true;
 
     virtual ~BoxColliderComponent() = default;
-    virtual void HandleCollision(Entity other) = 0;
+    virtual void HandleCollision(Entity self, Entity other) = 0;
 
     // Constructor which is used by the classes that inherit this
     BoxColliderComponent(const Vector2& pos, int width, int height)
