@@ -33,21 +33,22 @@ void TitleState::Enter()
         }
 
         mBackground = gCoordinator.CreateEntity();
-        std::unordered_map<std::string, Animation> curtainAnimations;
-        Animation openCurtains = {
-            .numberOfImages = 11,
-            .columnsPerRow = 4,
-            .clipWidth = 1920.f,
-            .clipHeight = 1080.f,
-            .animationTime = 0.2f,
-            .startClipPos = Vector2(),
-            .isPlaying = false,
-            .isLooping = false,
-            // Comment these out if you just want to use spriteSheet
-            .isImageAnimation = true,
-            .textures = curtainTextures
-        };
-        curtainAnimations.insert({"Open Curtains", openCurtains});
+        // SDL_Log(std::to_string(mBackground).c_str());
+        // std::unordered_map<std::string, Animation> curtainAnimations;
+        // Animation openCurtains = {
+        //     .numberOfImages = 11,
+        //     .columnsPerRow = 4,
+        //     .clipWidth = 1920.f,
+        //     .clipHeight = 1080.f,
+        //     .animationTime = 0.2f,
+        //     .startClipPos = Vector2(),
+        //     .isPlaying = false,
+        //     .isLooping = false,
+        //     // Comment these out if you just want to use spriteSheet
+        //     .isImageAnimation = true,
+        //     .textures = curtainTextures
+        // };
+        // curtainAnimations.insert({"Open Curtains", openCurtains});
         gCoordinator.AddComponent(
                 mBackground,
                 TextureComponent{
@@ -64,11 +65,11 @@ void TitleState::Enter()
                     .rotation = Vector2(),
                     .scale = Vector2()
                 });
-        gCoordinator.AddComponent(
-                mBackground, 
-                AnimationComponent{
-                    .animations = curtainAnimations
-                });
+        // gCoordinator.AddComponent(
+        //         mBackground, 
+        //         AnimationComponent{
+        //             .animations = curtainAnimations
+        //         });
     }
 
     mPlayButton = gCoordinator.CreateEntity();
@@ -105,16 +106,14 @@ void TitleState::Exit()
     // Clear the update order
     mSystemUpdateOrder.clear();
 
-    auto& animationComponent = gCoordinator.GetComponent<AnimationComponent>(mBackground);
-    animationComponent.Play("Open Curtains");
+    // auto& animationComponent = gCoordinator.GetComponent<AnimationComponent>(mBackground);
+    // animationComponent.Play("Open Curtains");
     // SDL_Log("Leaving TitleState")
     // Destroy the Texture component
-    // auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(mBackground);
-    // textureComponent.destroy();
-    auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(mPlayButton);
-    textureComponent.destroy();
+    gCoordinator.GetComponent<TextureComponent>(mBackground).destroy();
+    gCoordinator.GetComponent<TextureComponent>(mPlayButton).destroy();
 
-    // gCoordinator.DestroyEntity(mBackground);
+    gCoordinator.DestroyEntity(mBackground);
     gCoordinator.DestroyEntity(mPlayButton);
     // SDL_Log("DONE LEAVING TITLE");
     //

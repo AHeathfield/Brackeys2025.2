@@ -23,6 +23,11 @@ struct RenderData
     // When an entity gets deleted it's components will just point to another entity which is why we need to check it's texture path changed
     bool isNULL()
     {
+        if (texturePath != textureComponent->path)
+        {
+            std::string log = "Old Texture Path: " + texturePath + ", New Texture Path: " + textureComponent->path ;
+            SDL_Log(log.c_str());
+        }
         return (texturePath != textureComponent->path);
         // return (textureComponent == nullptr || transformComponent == nullptr);
     }
@@ -70,6 +75,7 @@ private:
     // We use TextureComponent& when we just want handle the object normally but its really big, we use TextureComponent* when we actually want to change the value of the object being passed in
     bool loadTexture(TextureComponent* textureComponent);
     bool loadFromRenderedText(TextureComponent* textureComponent);
+    void addToRenderOrder(Entity newEntity);
 
 private:
     SDL_Renderer* mRenderer = nullptr;

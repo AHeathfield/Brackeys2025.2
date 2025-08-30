@@ -1,18 +1,19 @@
 #include "PlayerCollider.h"
+#include "BoxColliderComponent.h"
 #include <string>
 // #include "BoxColliderComponent.h"
 
 extern Coordinator gCoordinator;
+extern State* gCurrentState;
 
-PlayerCollider::PlayerCollider(const Vector2& pos, int width, int height, Entity player)
-    : BoxColliderComponent(pos, width, height),
-    mPlayer(player)
+PlayerCollider::PlayerCollider(const Vector2& pos, int width, int height)
+    : BoxColliderComponent(pos, width, height)
 {}
 
 void PlayerCollider::HandleCollision(Entity self, Entity other)
 {
     // SDL_Log("Handling player collision");
-    auto& playerKinematics = gCoordinator.GetComponent<KinematicsComponent>(mPlayer);
+    auto& playerKinematics = gCoordinator.GetComponent<KinematicsComponent>(self);
     const auto& otherCollider = gCoordinator.GetComponent<BoxColliderComponent*>(other);
 
     if (gCoordinator.HasComponent<SolidComponent>(other))
@@ -61,7 +62,23 @@ void PlayerCollider::HandleCollision(Entity self, Entity other)
                 break;
         }
     }
+
+    else if (gCoordinator.HasComponent<StateChangerComponent>(other) && this->collisionSide != CollisionSide::NONE)
+    {
+        // Probably run some animation, have a timer or something then change state, but for now it will just instant change state
+        auto& stateChanger = gCoordinator.GetComponent<StateChangerComponent>(other);
+        
+        if (stateChanger.newState != nullptr)
+        {
+            gCurrentState = stateChanger.newState;
+        }
+        else
+        {
+            SDL_Log("Cannot change to null state");
+        }
+    }
 }
+
 
 
 bool PlayerCollider::IsPlayerOnGround()

@@ -42,7 +42,7 @@ set(SRCS
     src/Core/Camera.cpp
     src/Components/Buttons/StateChangerButton.cpp
     src/Components/Colliders/PlayerCollider.cpp
-    src/Components/Colliders/TileCollider.cpp
+    src/Components/Colliders/DefaultCollider.cpp
     src/Components/Colliders/BiscuitCollider.cpp
     src/Systems/RenderSystem.cpp
     src/Systems/PhysicsSystem.cpp

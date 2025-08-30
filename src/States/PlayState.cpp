@@ -1,5 +1,6 @@
 #include "PlayState.h"
 #include "State.h"
+#include "TitleState.h"
 #include <SDL3/SDL_rect.h>
 #include <string>
 #include <unordered_map>
@@ -20,6 +21,7 @@ void PlayState::Enter()
 
     // The player
     mPlayer = gCoordinator.CreateEntity();
+    // SDL_Log(std::to_string(mPlayer).c_str());
     std::unordered_map<std::string, Animation> playerAnimations;
     Animation run = {
         .numberOfImages = 12,
@@ -35,7 +37,7 @@ void PlayState::Enter()
     gCoordinator.AddComponent(
             mPlayer,
             TransformComponent{
-                .position = Vector2(200.f, 500.f),
+                .position = Vector2(500.f, 500.f),
             });
     gCoordinator.AddComponent(
             mPlayer,
@@ -46,10 +48,9 @@ void PlayState::Enter()
                 .depth = 10
             });
     boxCollider = new PlayerCollider(
-        Vector2(200.f, 500.f), //screenHeight - 334.f),
+        Vector2(500.f, 500.f), //screenHeight - 334.f),
         64,
-        64,
-        mPlayer
+        64
     );
     gCoordinator.AddComponent(
             mPlayer,
@@ -98,6 +99,35 @@ void PlayState::Enter()
             );
 
 
+    mHome = gCoordinator.CreateEntity();
+    gCoordinator.AddComponent(
+            mHome,
+            TransformComponent{
+                .position = Vector2(200.f, screenHeight - 270.f - 80.f),
+            });
+    gCoordinator.AddComponent(
+            mHome,
+            TextureComponent{
+                .texture = nullptr,
+                .spriteClip = SDL_FRect{0.f, 0.f, 80.f, 80.f},
+                .path = "src/Assets/CitySpriteSheet.png",
+                .depth = 10
+            });
+    boxCollider = new DefaultCollider(
+        Vector2(200.f, screenHeight - 270.f - 80.f),
+        80,
+        80
+    );
+    gCoordinator.AddComponent(
+            mHome,
+            boxCollider
+            );
+    gCoordinator.AddComponent(
+            mHome, 
+            StateChangerComponent{
+                .newState = new TitleState()
+            });
+
 
     mBackground = gCoordinator.CreateEntity();
     gCoordinator.AddComponent(
@@ -126,7 +156,7 @@ void PlayState::Enter()
                 .texture = nullptr,
                 .path = "src/Assets/Starting.png",
             });
-    boxCollider = new TileCollider(
+    boxCollider = new DefaultCollider(
         Vector2(0.f, screenHeight - 270.f),
         7680,
         270
@@ -161,7 +191,7 @@ void PlayState::Enter()
                 .spriteClip = SDL_FRect{0.f, 0.f, 120.f, 120.f},
                 .path = "src/Assets/SandStoneSpriteSheet.png",
             });
-    boxCollider = new TileCollider(
+    boxCollider = new DefaultCollider(
             Vector2(1300.f, screenHeight - (270.f + 120.f)),
             120,
             120
@@ -188,7 +218,7 @@ void PlayState::Enter()
                 .spriteClip = SDL_FRect{0.f, 0.f, 120.f, 120.f},
                 .path = "src/Assets/SandStoneSpriteSheet.png",
             });
-    boxCollider = new TileCollider(
+    boxCollider = new DefaultCollider(
             Vector2(1000.f, 400.f),
             120,
             120
@@ -227,6 +257,8 @@ void PlayState::Exit()
 
     // Destroy the Texture components
     gCoordinator.GetComponent<TextureComponent>(mPlayer).destroy();
+    gCoordinator.GetComponent<TextureComponent>(mHome).destroy();
+    gCoordinator.GetComponent<TextureComponent>(mBiscuit).destroy();
     gCoordinator.GetComponent<TextureComponent>(mBackground).destroy();
     gCoordinator.GetComponent<TextureComponent>(mGround).destroy();
     gCoordinator.GetComponent<TextureComponent>(mTestObject).destroy();
@@ -234,6 +266,8 @@ void PlayState::Exit()
 
     // Destroying entities
     gCoordinator.DestroyEntity(mPlayer);
+    gCoordinator.DestroyEntity(mBiscuit);
+    gCoordinator.DestroyEntity(mHome);
     gCoordinator.DestroyEntity(mGround);
     gCoordinator.DestroyEntity(mBackground);
     gCoordinator.DestroyEntity(mTestObject);

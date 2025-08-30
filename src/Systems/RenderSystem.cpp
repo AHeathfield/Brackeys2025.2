@@ -61,6 +61,7 @@ bool RenderSystem::Init()
 }
 
 
+
 void RenderSystem::Update(float deltaTime)
 {
     // Updating window size if it changed
@@ -76,45 +77,33 @@ void RenderSystem::Update(float deltaTime)
     SDL_SetRenderDrawColor( mRenderer, 0xFF, 0xFF, 0xFF,  0xFF );
     SDL_RenderClear( mRenderer );
 
+    // std::string log = "Old #: " + std::to_string(mOldNumOfEntities) + ", New #: " + std::to_string(mEntities.size());
+    // SDL_Log(log.c_str());
+
+
+    // Keeping these here just in case some where deleted while some where added at same time
+    bool isNewEntitiesAdded = mOldNumOfEntities < mEntities.size();
+    auto itrEnt = mEntities.end(); // Not actually the newest entity, but the it after it
+    Entity newEntity;
+
     // New layering system
-    if (mOldNumOfEntities < mEntities.size())
+    if (isNewEntitiesAdded)
     {
-        auto it = mEntities.end(); // Not actually the newest entity, but the it after it
-        Entity newEntity;
+        // auto it = mEntities.end(); // Not actually the newest entity, but the it after it
+        // Entity newEntity;
 
         // This is because their might be more than 1 add
-        for (int i = 0; i < mEntities.size() - (mOldNumOfEntities - 1); i++)
+        for (int i = 1; i <= mEntities.size() - (mOldNumOfEntities); i++)
         {
             // Getting the new entity
-            it = prev(it);
-            newEntity = *it;
-            auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(newEntity);
-            auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(newEntity);
-
-            // creates the texture for the texture component since it's a new entity
-            LoadMedia(&textureComponent);
-
-            RenderData renderData = {
-                .textureComponent = &textureComponent,
-                .transformComponent = &transformComponent,
-                .texturePath = textureComponent.path
-            };
-
-            // If there already entitys with same depth
-            if (mRenderOrder.find(textureComponent.depth) != mRenderOrder.end())
-            {
-                mRenderOrder[textureComponent.depth].push_back(renderData);
-            }
-            else
-            {
-                std::vector<RenderData> tempArray = {renderData};
-                mRenderOrder.insert({textureComponent.depth, tempArray});
-
-            }
+            itrEnt = prev(itrEnt);
+            newEntity = *itrEnt;
+            addToRenderOrder(newEntity);
         }
         // it = nullptr;
         mOldNumOfEntities = mEntities.size();
     }
+
 
     // Rendering in correct order
     for (auto it = mRenderOrder.begin(); it != mRenderOrder.end(); it++)
@@ -127,6 +116,16 @@ void RenderSystem::Update(float deltaTime)
         {
             if (it->second[i].isNULL())
             {
+                // So if entities are deleted and added at same time, this makes sure we add all the entities that were added
+                if (isNewEntitiesAdded)
+                {
+                    if (itrEnt != mEntities.begin())
+                    {
+                        itrEnt = prev(itrEnt);
+                        newEntity = *itrEnt;
+                        addToRenderOrder(newEntity);
+                    }
+                }
                 SDL_Log("erasing!");
                 // Erasing from the actual and not copy
                 it->second[i].destroy(); // Just in case 1 of the components still exist
@@ -196,6 +195,10 @@ bool RenderSystem::LoadMedia(TextureComponent* textureComponent)
 
 void RenderSystem::Render(TransformComponent transfromComponent, TextureComponent textureComponent, double degrees, SDL_FPoint* center, SDL_FlipMode flipMode)
 {
+    // if (textureComponent.depth == 10)
+    // {
+    //     SDL_Log(textureComponent.path.c_str());
+    // }
     Vector2 camPos = mCamera.GetPosition();
     Vector2 camOffset = mCamera.GetOffset();
     SDL_FRect dstRect{ transfromComponent.position.x - camPos.x + camOffset.x, transfromComponent.position.y - camPos.y + camOffset.y, static_cast<float>(textureComponent.width), static_cast<float>(textureComponent.height) };
@@ -391,4 +394,34 @@ bool RenderSystem::loadFromRenderedText(TextureComponent* textureComponent)
 
     //Return success if texture loaded
     // return textureComponent->texture != nullptr;
+}
+
+void RenderSystem::addToRenderOrder(Entity newEntity)
+{
+    auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(newEntity);
+    auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(newEntity);
+
+    // creates the texture for the texture component since it's a new entity
+    LoadMedia(&textureComponent);
+
+    RenderData renderData = {
+        .textureComponent = &textureComponent,
+        .transformComponent = &transformComponent,
+        .texturePath = textureComponent.path
+    };
+
+    SDL_Log(textureComponent.path.c_str());
+
+
+    // If there already entitys with same depth
+    if (mRenderOrder.find(textureComponent.depth) != mRenderOrder.end())
+    {
+        mRenderOrder[textureComponent.depth].push_back(renderData);
+    }
+    else
+    {
+        std::vector<RenderData> tempArray = {renderData};
+        mRenderOrder.insert({textureComponent.depth, tempArray});
+
+    }
 }
