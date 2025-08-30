@@ -5,6 +5,7 @@
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
 #include <algorithm>
+#include <sstream>
 #include <string>
 
 extern Coordinator gCoordinator;
@@ -52,10 +53,6 @@ bool RenderSystem::Init()
         return false;
     }
 
-
-    // Initializing the render order
-    mOldNumOfEntities = mEntities.size();
-
     // Everything initialize good
     return true;
 }
@@ -82,61 +79,131 @@ void RenderSystem::Update(float deltaTime)
 
 
     // Keeping these here just in case some where deleted while some where added at same time
-    bool isNewEntitiesAdded = mOldNumOfEntities < mEntities.size();
-    auto itrEnt = mEntities.end(); // Not actually the newest entity, but the it after it
-    Entity newEntity;
+    // bool isNewEntitiesAdded = mOldNumOfEntities < mEntities.size();
+    // auto itrEnt = mEntities.end(); // Not actually the newest entity, but the it after it
+    // Entity newEntity;
+    //
+    //
+    // // New layering system
+    // if (isNewEntitiesAdded)
+    // {
+    //     // auto it = mEntities.end(); // Not actually the newest entity, but the it after it
+    //     // Entity newEntity;
+    //
+    //     // This is because their might be more than 1 add
+    //     for (int i = 1; i <= mEntities.size() - (mOldNumOfEntities); i++)
+    //     {
+    //         // Getting the new entity
+    //         itrEnt = prev(itrEnt);
+    //         newEntity = *itrEnt;
+    //         addToRenderOrder(newEntity);
+    //     }
+    //     // it = nullptr;
+    //     // mOldNumOfEntities = mEntities.size();
+    // }
 
-    // New layering system
-    if (isNewEntitiesAdded)
-    {
-        // auto it = mEntities.end(); // Not actually the newest entity, but the it after it
-        // Entity newEntity;
 
-        // This is because their might be more than 1 add
-        for (int i = 1; i <= mEntities.size() - (mOldNumOfEntities); i++)
-        {
-            // Getting the new entity
-            itrEnt = prev(itrEnt);
-            newEntity = *itrEnt;
-            addToRenderOrder(newEntity);
-        }
-        // it = nullptr;
-        mOldNumOfEntities = mEntities.size();
-    }
-
-
-    // Rendering in correct order
+    // Rendering in correct order + removing any deleted entities/textures
+    int deleted = 0;
+    int oldNumOfEntities = mEntitiesInRenderOrder.size();
+    std::unordered_set<Entity> currentEntities;
+    Entity currentEntity;
     for (auto it = mRenderOrder.begin(); it != mRenderOrder.end(); it++)
     {
+        // NEW USING ENTITIES instead of RenderData
+        currentEntities = it->second;
+        for (auto itrCurrent = currentEntities.begin(); itrCurrent != currentEntities.end(); itrCurrent++)
+        {
+            currentEntity = *itrCurrent;
+
+            // If the entity has been deleted or no longer has texture
+            if (gCoordinator.IsEntityDestroyed(currentEntity) || !gCoordinator.HasComponent<TextureComponent>(currentEntity))
+            {
+                it->second.erase(currentEntity);
+                mEntitiesInRenderOrder.erase(currentEntity);
+                deleted++;
+                SDL_Log("Deleted");
+            }
+
+            // Else render it
+            else
+            {
+                auto& transform = gCoordinator.GetComponent<TransformComponent>(currentEntity);
+                auto& texture = gCoordinator.GetComponent<TextureComponent>(currentEntity);
+
+                if (texture.path == "src/Assets/Background.png")
+                {
+                    std::stringstream ss;
+                    ss << texture.texture;
+                    std::string log = ss.str();
+                    SDL_Log(log.c_str());
+                }
+                Render(transform, texture);
+            }
+        }
+
+        // OLD
         // Logging what depth is currently being rendered
         // std::string log = "Depth: " + std::to_string(it->first);
         // SDL_Log(log.c_str());
         // Copy of the array since we might be deleting some renders
-        for (int i = 0; i < it->second.size();)
-        {
-            if (it->second[i].isNULL())
-            {
-                // So if entities are deleted and added at same time, this makes sure we add all the entities that were added
-                if (isNewEntitiesAdded)
-                {
-                    if (itrEnt != mEntities.begin())
-                    {
-                        itrEnt = prev(itrEnt);
-                        newEntity = *itrEnt;
-                        addToRenderOrder(newEntity);
-                    }
-                }
-                SDL_Log("erasing!");
-                // Erasing from the actual and not copy
-                it->second[i].destroy(); // Just in case 1 of the components still exist
-                it->second.erase(it->second.begin() + i);
-            }
-            else
-            {
-                Render(*it->second[i].transformComponent, *it->second[i].textureComponent);
+        // for (int i = 0; i < it->second.size();)
+        // {
+        //     if (it->second[i].isNULL())
+        //     {
+        //         // So if entities are deleted and added at same time, this makes sure we add all the entities that were added
+        //         if (isNewEntitiesAdded)
+        //         {
+        //             if (itrEnt != mEntities.begin())
+        //             {
+        //                 SDL_Log("Texture deleted and adding new");
+        //                 itrEnt = prev(itrEnt);
+        //                 newEntity = *itrEnt;
+        //                 addToRenderOrder(newEntity);
+        //             }
+        //         }
+        //         SDL_Log("erasing!");
+        //         it->second[i].destroy(); // Just in case 1 of the components still exist
+        //         it->second.erase(it->second.begin() + i);
+        //     }
+        //     else
+        //     {
+        //         Render(*it->second[i].transformComponent, *it->second[i].textureComponent);
+        //
+        //         // Only increment here since not erasing
+        //         i++;
+        //     }
+        // }
+    }
 
-                // Only increment here since not erasing
-                i++;
+    // NEW Update Render Order
+    int numOfEntitiesToBeAdded = mEntities.size() + deleted - oldNumOfEntities;
+
+    if (numOfEntitiesToBeAdded > 0)
+    {
+        auto itrNew = mEntities.end(); // Not actually the newest entity, but the it after it
+        Entity newEntity;
+        int entitiesAdded = 0;
+
+        // New additions are more likely to be new entities rather than old ones that just are given a texture component which is why I'm starting at the end
+        while (itrNew != mEntities.begin())
+        {
+            // Getting the new entity
+            itrNew = prev(itrNew);
+            newEntity = *itrNew;
+
+            // If that entity is not already in render order, add it
+            if (mEntitiesInRenderOrder.find(newEntity) == mEntitiesInRenderOrder.end())
+            {
+                // SDL_Log("Added");
+                addToRenderOrder(newEntity);
+                mEntitiesInRenderOrder.insert(newEntity);
+                entitiesAdded++;
+            }
+
+            if (entitiesAdded == numOfEntitiesToBeAdded)
+            {
+                break;
             }
         }
     }
@@ -399,16 +466,16 @@ bool RenderSystem::loadFromRenderedText(TextureComponent* textureComponent)
 void RenderSystem::addToRenderOrder(Entity newEntity)
 {
     auto& textureComponent = gCoordinator.GetComponent<TextureComponent>(newEntity);
-    auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(newEntity);
+    // auto& transformComponent = gCoordinator.GetComponent<TransformComponent>(newEntity);
 
     // creates the texture for the texture component since it's a new entity
     LoadMedia(&textureComponent);
 
-    RenderData renderData = {
-        .textureComponent = &textureComponent,
-        .transformComponent = &transformComponent,
-        .texturePath = textureComponent.path
-    };
+    // RenderData renderData = {
+    //     .textureComponent = &textureComponent,
+    //     .transformComponent = &transformComponent,
+    //     .texturePath = textureComponent.path
+    // };
 
     SDL_Log(textureComponent.path.c_str());
 
@@ -416,12 +483,11 @@ void RenderSystem::addToRenderOrder(Entity newEntity)
     // If there already entitys with same depth
     if (mRenderOrder.find(textureComponent.depth) != mRenderOrder.end())
     {
-        mRenderOrder[textureComponent.depth].push_back(renderData);
+        mRenderOrder[textureComponent.depth].insert(newEntity);
     }
     else
     {
-        std::vector<RenderData> tempArray = {renderData};
+        std::unordered_set<Entity> tempArray = {newEntity};
         mRenderOrder.insert({textureComponent.depth, tempArray});
-
     }
 }

@@ -20,7 +20,6 @@ void BiscuitCollider::HandleCollision(Entity self, Entity other)
             // Disabling since when someone dies I don't want to reload the entire scene atleast for now
             gCoordinator.RemoveComponent<TextureComponent>(self);
             this->isActive = false;
-
         }
     }
 }

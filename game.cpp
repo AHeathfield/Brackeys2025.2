@@ -271,6 +271,7 @@ int main( int argc, char* args[] )
             // Setting new state
             if (gCurrentState != prevState)
             {
+                // SDL_Log("TEST");
                 prevState->Exit();
                 delete prevState;
                 gCurrentState->Enter();
@@ -292,7 +293,16 @@ int main( int argc, char* args[] )
                 }
 
                 // NEW, now state handles events!
+                // FIXME: HERE
                 gCurrentState->HandleEvent(&e);
+                // if (typeid(*gCurrentState) == typeid(TitleState))
+                // {
+                //     SDL_Log("Title Handle");
+                // }
+                // else
+                // {
+                //     SDL_Log("Play Handle");
+                // }
             }
 
             gCurrentState->Update(deltaTime);
@@ -310,6 +320,15 @@ int main( int argc, char* args[] )
             // std::string log = std::to_string(deltaTime);
             // SDL_Log(log.c_str());
             frameTimer.stop();
+
+            // if (typeid(*gCurrentState) == typeid(TitleState))
+            // {
+            //     SDL_Log("Title");
+            // }
+            // else
+            // {
+            //     SDL_Log("Play");
+            // }
         }
         // =======================================================
         gCurrentState->Exit();

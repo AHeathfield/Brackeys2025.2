@@ -33,4 +33,6 @@ private:
     Entity mPlayButton;
     std::vector<std::shared_ptr<System>> mSystemUpdateOrder;
     // int mStateNumber = -1; // Default value
+
+    bool mFinishEntering = false;
 };

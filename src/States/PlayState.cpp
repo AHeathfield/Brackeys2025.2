@@ -255,14 +255,14 @@ void PlayState::Exit()
     // Clear the update order
     mSystemUpdateOrder.clear();
 
-    // Destroy the Texture components
-    gCoordinator.GetComponent<TextureComponent>(mPlayer).destroy();
-    gCoordinator.GetComponent<TextureComponent>(mHome).destroy();
-    gCoordinator.GetComponent<TextureComponent>(mBiscuit).destroy();
-    gCoordinator.GetComponent<TextureComponent>(mBackground).destroy();
-    gCoordinator.GetComponent<TextureComponent>(mGround).destroy();
-    gCoordinator.GetComponent<TextureComponent>(mTestObject).destroy();
-    gCoordinator.GetComponent<TextureComponent>(mTestObjectAir).destroy();
+    // Destroy the Texture components. CHANGED RENDERSYSTEM HANDLES
+    // gCoordinator.GetComponent<TextureComponent>(mPlayer).destroy();
+    // gCoordinator.GetComponent<TextureComponent>(mHome).destroy();
+    // gCoordinator.GetComponent<TextureComponent>(mBiscuit).destroy();
+    // gCoordinator.GetComponent<TextureComponent>(mBackground).destroy();
+    // gCoordinator.GetComponent<TextureComponent>(mGround).destroy();
+    // gCoordinator.GetComponent<TextureComponent>(mTestObject).destroy();
+    // gCoordinator.GetComponent<TextureComponent>(mTestObjectAir).destroy();
 
     // Destroying entities
     gCoordinator.DestroyEntity(mPlayer);

@@ -71,6 +71,9 @@ public:
         // std::string log = std::to_string(mLivingEntityCount);
         // SDL_Log(log.c_str());
 
+        // If it's not in set it won't cause an error
+        mDestroyedEntities.erase(id);
+
         return id;
     }
 
@@ -86,6 +89,18 @@ public:
         // Im guessing bc you don't want to be checking non existing entities before existing ones
         mAvailableEntities.push(entity);
         mLivingEntityCount--;
+
+        // Resetting it since it every entity
+        if (mDestroyedEntities.size() >= MAX_ENTITIES)
+        {
+            mDestroyedEntities.clear();
+        }
+        mDestroyedEntities.insert(entity);
+    }
+
+    bool IsEntityDestroyed(Entity entity)
+    {
+        return (mDestroyedEntities.find(entity) != mDestroyedEntities.end());
     }
 
     // This sets what components the entity has
@@ -108,6 +123,9 @@ public:
 private:
     // Queue of unused entity IDs
     std::queue<Entity> mAvailableEntities;
+
+    // A Set of Deleted Entities used to check if a entity has been deleted
+    std::set<Entity> mDestroyedEntities;
 
     // Array of signatures where the index corresponds to the entity ID
     std::array<Signature, MAX_ENTITIES> mSignatures;
@@ -500,6 +518,11 @@ public:
         mEntityManager->DestroyEntity(entity);
         mComponentManager->EntityDestroyed(entity);
         mSystemManager->EntityDestroyed(entity);
+    }
+
+    bool IsEntityDestroyed(Entity entity)
+    {
+        return mEntityManager->IsEntityDestroyed(entity);
     }
 
 

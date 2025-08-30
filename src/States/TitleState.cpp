@@ -7,12 +7,7 @@ extern Coordinator gCoordinator;
 
 void TitleState::Enter()
 {
-    // Unique state Number
-    // if (mStateNumber == -1)
-    // {
-    //     State::stateNumber++;
-    //     mStateNumber = State::stateNumber;
-    // }
+    // mFinishEntering = false;
 
     // The player
     if (mBackground == MAX_ENTITIES + 1)
@@ -95,10 +90,17 @@ void TitleState::Enter()
             );
     button = nullptr;
 
+    
+    // Setting a default render camera
+    Camera defaultCam = Camera();
+    gCoordinator.GetSystem<RenderSystem>()->SetCamera(defaultCam);
+
     // Setting the Systems Update Order
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AnimationSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<RenderSystem>());
     mSystemUpdateOrder.push_back(gCoordinator.GetSystem<AudioSystem>());
+
+    // mFinishEntering = true;
 }
 
 void TitleState::Exit()
@@ -109,9 +111,11 @@ void TitleState::Exit()
     // auto& animationComponent = gCoordinator.GetComponent<AnimationComponent>(mBackground);
     // animationComponent.Play("Open Curtains");
     // SDL_Log("Leaving TitleState")
+
+    // NOTE: WE DON'T WANT TO DESTROY SINCE RENDERSYSTEM WILL HANDLE IT ALL
     // Destroy the Texture component
-    gCoordinator.GetComponent<TextureComponent>(mBackground).destroy();
-    gCoordinator.GetComponent<TextureComponent>(mPlayButton).destroy();
+    // gCoordinator.GetComponent<TextureComponent>(mBackground).destroy();
+    // gCoordinator.GetComponent<TextureComponent>(mPlayButton).destroy();
 
     gCoordinator.DestroyEntity(mBackground);
     gCoordinator.DestroyEntity(mPlayButton);
@@ -121,6 +125,11 @@ void TitleState::Exit()
 
 void TitleState::HandleEvent(SDL_Event* e)
 {
+    // if (!mFinishEntering)
+    // {
+    //     return;
+    // }
+
     //If mouse event happened
     if( e->type == SDL_EVENT_MOUSE_MOTION || e->type == SDL_EVENT_MOUSE_BUTTON_DOWN || e->type == SDL_EVENT_MOUSE_BUTTON_UP )
     {
@@ -155,8 +164,6 @@ void TitleState::HandleEvent(SDL_Event* e)
             disableEffectColor(&texture);
         }
     }
-
-
 }
 
 
@@ -165,6 +172,7 @@ void TitleState::Update(float deltaTime)
 {
     for (int i = 0; i < mSystemUpdateOrder.size(); i++)
     {
+        // SDL_Log(std::to_string(i).c_str());
         mSystemUpdateOrder[i]->Update(deltaTime);
     }
 }

@@ -3,6 +3,7 @@
 #include <SDL3/SDL_render.h>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "../Components/TextureComponent.h"
 #include "../Components/TransformComponent.h"
@@ -13,31 +14,31 @@
 // #include "../States/TitleState.h"
 
 // This is for the layering implementation
-struct RenderData
-{
-    TextureComponent* textureComponent = nullptr;
-    TransformComponent* transformComponent = nullptr;
-    
-    std::string texturePath = "";
-
-    // When an entity gets deleted it's components will just point to another entity which is why we need to check it's texture path changed
-    bool isNULL()
-    {
-        if (texturePath != textureComponent->path)
-        {
-            std::string log = "Old Texture Path: " + texturePath + ", New Texture Path: " + textureComponent->path ;
-            SDL_Log(log.c_str());
-        }
-        return (texturePath != textureComponent->path);
-        // return (textureComponent == nullptr || transformComponent == nullptr);
-    }
-
-    void destroy()
-    {
-        textureComponent = nullptr;
-        transformComponent = nullptr;
-    }
-};
+// struct RenderData
+// {
+//     TextureComponent* textureComponent = nullptr;
+//     TransformComponent* transformComponent = nullptr;
+//
+//     std::string texturePath = "";
+//
+//     // When an entity gets deleted it's components will just point to another entity which is why we need to check it's texture path changed
+//     bool isNULL()
+//     {
+//         if (texturePath != textureComponent->path)
+//         {
+//             std::string log = "Old Texture Path: " + texturePath + ", New Texture Path: " + textureComponent->path ;
+//             SDL_Log(log.c_str());
+//         }
+//         return (texturePath != textureComponent->path);
+//         // return (textureComponent == nullptr || transformComponent == nullptr);
+//     }
+//
+//     void destroy()
+//     {
+//         textureComponent = nullptr;
+//         transformComponent = nullptr;
+//     }
+// };
 
 class RenderSystem : public System
 {
@@ -88,8 +89,6 @@ private:
 
     // Using the fact that map by nature is sorted using red-black tree, therefore keys will sorted least to greatest
     // The key is the texture depth
-    std::map<int, std::vector<RenderData>> mRenderOrder;
-
-    int mOldNumOfEntities = 0;
-    int mOldStateNumber = 0;
+    std::map<int, std::unordered_set<Entity>> mRenderOrder;
+    std::unordered_set<Entity> mEntitiesInRenderOrder;
 };
